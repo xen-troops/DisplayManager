@@ -34,6 +34,11 @@ include_directories(
 
 set(SOURCES
 	main.cpp
+	Config.cpp
+	Display.cpp
+	Layer.cpp
+	ObjectManager.cpp
+	Surface.cpp
 )
 
 ################################################################################
@@ -51,4 +56,5 @@ install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 target_link_libraries(${PROJECT_NAME}
 	pthread
 	${CONFIG_LIBRARIES}
+	${ILM_CTRL_LIBRARIES}
 )

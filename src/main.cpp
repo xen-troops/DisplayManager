@@ -28,6 +28,10 @@
 
 #include <xen/be/Log.hpp>
 
+#include "Config.hpp"
+#include "Display.hpp"
+#include "ObjectManager.hpp"
+
 using std::cout;
 using std::endl;
 using std::ofstream;
@@ -134,11 +138,11 @@ int main(int argc, char *argv[])
 				Log::setStreamBuffer(logFile.rdbuf());
 			}
 
-			LOG("Main", INFO) << "Start";
+			ConfigPtr config(new Config(gCfgFileName));
+
+			DisplayManager displayManager(config);
 
 			waitSignals();
-
-			LOG("Main", INFO) << "Stop";
 
 			logFile.close();
 		}
