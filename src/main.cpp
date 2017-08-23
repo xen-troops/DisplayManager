@@ -28,9 +28,7 @@
 
 #include <xen/be/Log.hpp>
 
-#include "Config.hpp"
-#include "Display.hpp"
-#include "ObjectManager.hpp"
+#include "DisplayManager.hpp"
 
 using std::cout;
 using std::endl;
