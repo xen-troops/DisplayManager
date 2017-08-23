@@ -36,6 +36,8 @@ set(SOURCES
 	main.cpp
 	Config.cpp
 	Display.cpp
+	DisplayManager.cpp
+	EventHandler.cpp
 	Layer.cpp
 	ObjectManager.cpp
 	Surface.cpp

@@ -14,8 +14,7 @@ using std::string;
  ******************************************************************************/
 
 Surface::Surface(const string& name, t_ilm_surface id) :
-	mName(name),
-	mID(id),
+	IlmObject<t_ilm_surface>(name, id),
 	mLog("Surface")
 {
 	LOG(mLog, DEBUG) << "Create: " << mName << ", id: " << mID;

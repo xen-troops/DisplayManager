@@ -51,6 +51,7 @@ Config::Config(const string& fileName) :
 
 		mDisplaysCount = readSectionCount("displays");
 		mLayersCount = readSectionCount("layers");
+		mSurfacesCount = readSectionCount("surfaces");
 	}
 	catch(const FileIOException& e)
 	{
@@ -77,11 +78,11 @@ void Config::getDisplayConfig(int index, DisplayConfig& config)
 		Setting& setting = mConfig.lookup(sectionName)[index];
 
 		config.name = static_cast<const char*>(setting.lookup("name"));
-		config.displayID = setting.lookup("id");
+		config.id = setting.lookup("id");
 
 		LOG(mLog, DEBUG) << sectionName << "[" << index << "] name: "
 						 << config.name
-						 << ", id: " << config.displayID;
+						 << ", id: " << config.id;
 	}
 	catch(const SettingException& e)
 	{
@@ -98,19 +99,35 @@ void Config::getLayerConfig(int index, LayerConfig& config)
 		Setting& setting = mConfig.lookup(sectionName)[index];
 
 		config.name = static_cast<const char*>(setting.lookup("name"));
-		config.layerID = setting.lookup("id");
-		config.displayName =
-				static_cast<const char*>(setting.lookup("display"));
+		config.id = setting.lookup("id");
 		config.width = setting.lookup("width");
 		config.height = setting.lookup("height");
-		config.zOrder = setting.lookup("zorder");
 
 		LOG(mLog, DEBUG) << sectionName << "[" << index << "] name: "
 						 << config.name
-						 << ", id: " << config.layerID
-						 << ", display: " << config.displayName
-						 << ", w: " << config.width << ", h: " << config.height
-						 << ", z: " << config.zOrder;
+						 << ", id: " << config.id
+						 << ", w: " << config.width << ", h: " << config.height;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading " + sectionName);
+	}
+}
+
+void Config::getSurfaceConfig(int index, SurfaceConfig& config)
+{
+	string sectionName = "surfaces";
+
+	try
+	{
+		Setting& setting = mConfig.lookup(sectionName)[index];
+
+		config.name = static_cast<const char*>(setting.lookup("name"));
+		config.id = setting.lookup("id");
+
+		LOG(mLog, DEBUG) << sectionName << "[" << index << "] name: "
+						 << config.name
+						 << ", id: " << config.id;
 	}
 	catch(const SettingException& e)
 	{

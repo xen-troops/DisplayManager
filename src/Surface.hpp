@@ -14,16 +14,15 @@
 
 #include <xen/be/Log.hpp>
 
-class Surface
+#include "IlmObject.hpp"
+
+class Surface : public IlmObject<t_ilm_surface>
 {
 public:
 	Surface(const std::string& name, t_ilm_surface id);
 	~Surface();
 
 private:
-	std::string mName;
-	t_ilm_surface mID;
-
 	XenBackend::Log mLog;
 };
 

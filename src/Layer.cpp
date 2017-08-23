@@ -18,14 +18,13 @@ using std::to_string;
  * Layer
  ******************************************************************************/
 
-Layer::Layer(const string& name, t_ilm_layer id,
-			 int width, int height, int zOrder) :
-	mName(name),
-	mZOrder(zOrder),
-	mID(id),
+Layer::Layer(const string& name, t_ilm_layer id, int width, int height) :
+	IlmObject<t_ilm_layer>(name, id),
 	mLog("Layer")
 {
 	ilmErrorTypes ret = ILM_SUCCESS;
+
+	auto requestedID = mID;
 
 	if ((ret = ilm_layerCreateWithDimension(&mID, width, height)) !=
 		ILM_SUCCESS)
@@ -43,6 +42,14 @@ Layer::Layer(const string& name, t_ilm_layer id,
 		{
 			throw DmException("Can't create layer " + to_string(mID), ret);
 		}
+	}
+
+	if (requestedID != mID)
+	{
+		ilm_layerRemove(mID);
+
+		throw DmException("Can't set requested layer ID " +
+						  to_string(requestedID), ret);
 	}
 
 	LOG(mLog, DEBUG) << "Create: " << mName << ", id: " << mID;

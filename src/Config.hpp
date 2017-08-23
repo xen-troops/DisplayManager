@@ -64,7 +64,7 @@ private:
 struct DisplayConfig
 {
 	std::string name;
-	t_ilm_display displayID;
+	t_ilm_display id;
 };
 
 /***************************************************************************//**
@@ -74,11 +74,19 @@ struct DisplayConfig
 struct LayerConfig
 {
 	std::string name;
-	t_ilm_layer layerID;
-	std::string displayName;
+	t_ilm_layer id;
 	int width;
 	int height;
-	int zOrder;
+};
+
+/***************************************************************************//**
+ * Surface configuration
+ * @ingroup config
+ ******************************************************************************/
+struct SurfaceConfig
+{
+	std::string name;
+	t_ilm_surface id;
 };
 
 /***************************************************************************//**
@@ -100,6 +108,9 @@ public:
 	const int getLayersCount() { return mLayersCount; }
 	void getLayerConfig(int index, LayerConfig& config);
 
+	const int getSurfacesCount() { return mSurfacesCount; }
+	void getSurfaceConfig(int index, SurfaceConfig& config);
+
 private:
 
 	const char* cDefaultCfgName = "dm.cfg";
@@ -109,6 +120,7 @@ private:
 
 	int mDisplaysCount;
 	int mLayersCount;
+	int mSurfacesCount;
 
 	int readSectionCount(const std::string& name);
 };
