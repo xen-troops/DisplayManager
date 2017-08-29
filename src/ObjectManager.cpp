@@ -160,6 +160,11 @@ void ObjectManager::deleteSurfaceByID(t_ilm_surface id)
 {
 	auto surface = getSurfaceByID(id);
 
+	if (!surface)
+	{
+		throw DmException("Can't find surfece id " + to_string(id));
+	}
+
 	mSurfaces.erase(surface->getName());
 }
 

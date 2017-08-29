@@ -58,7 +58,7 @@ void EventHandler::objectNotification(ilmObjectType object, t_ilm_uint id,
 			}
 			else
 			{
-				mObjects.deleteSurfaceByID(id);
+				deleteSurface(id);
 			}
 		}
 
@@ -134,6 +134,8 @@ void EventHandler::deleteSurface(t_ilm_surface id)
 		LOG(mLog, DEBUG) << "Delete surface, id: " << id;
 
 		mObjects.deleteSurfaceByID(id);
+
+		mObjects.update();
 
 		return;
 	}
