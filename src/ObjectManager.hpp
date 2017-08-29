@@ -12,6 +12,7 @@
 
 #include <xen/be/Log.hpp>
 
+#include "Config.hpp"
 #include "Display.hpp"
 #include "Layer.hpp"
 #include "Surface.hpp"
@@ -22,19 +23,20 @@ public:
 	ObjectManager();
 	~ObjectManager();
 
-	DisplayPtr createDisplay(const std::string& name, t_ilm_display id);
+	DisplayPtr createDisplay(const DisplayConfig& config);
 	DisplayPtr getDisplayByName(const std::string& name) const;
 	DisplayPtr getDisplayByID(t_ilm_display id) const;
 
-	LayerPtr createLayer(const std::string& name, t_ilm_layer id,
-						 int width, int height);
+	LayerPtr createLayer(const LayerConfig& config);
 	LayerPtr getLayerByName(const std::string& name) const;
 	LayerPtr getLayerByID(t_ilm_layer id) const;
 
-	SurfacePtr createSurface(const std::string& name, t_ilm_surface id);
+	SurfacePtr createSurface(const SurfaceConfig& config);
 	SurfacePtr getSurfaceByName(const std::string& name) const;
 	SurfacePtr getSurfaceByID(t_ilm_surface id) const;
 	void deleteSurfaceByID(t_ilm_surface id);
+
+	void update();
 
 private:
 	XenBackend::Log mLog;

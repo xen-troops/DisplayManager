@@ -14,7 +14,7 @@
 using std::exception;
 
 /*******************************************************************************
- * ObjectManager
+ * EventHandler
  ******************************************************************************/
 
 EventHandler::EventHandler(ObjectManager& objects, ConfigPtr config) :
@@ -117,7 +117,7 @@ void EventHandler::createSurface(t_ilm_surface id)
 		{
 			LOG(mLog, DEBUG) << "Create surface, id: " << id;
 
-			mObjects.createSurface(config.name, config.id);
+			mObjects.createSurface(config);
 
 			return;
 		}

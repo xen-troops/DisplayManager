@@ -12,21 +12,24 @@
 
 #include <ilm/ilm_types.h>
 
-#include <xen/be/Log.hpp>
-
 #include "IlmObject.hpp"
 
-class Display : public IlmObject<t_ilm_display>
+class Display : public IlmObject
 {
 public:
 	explicit Display(const std::string& name, t_ilm_display id);
 	~Display();
 
+	void setVisibility(t_ilm_bool visibility) override;
+	void setOpacity(t_ilm_float opacity) override;
+
 private:
 	t_ilm_uint mWidth;
 	t_ilm_uint mHeight;
 
-	XenBackend::Log mLog;
+	void onAddChild(t_ilm_uint id) override;
+	void onRemoveChild(t_ilm_uint id) override;
+	void onUpdate(const std::vector<t_ilm_uint>& ids) override;
 };
 
 typedef std::shared_ptr<Display> DisplayPtr;

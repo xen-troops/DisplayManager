@@ -27,25 +27,32 @@ ObjectManager::ObjectManager() :
 ObjectManager::~ObjectManager()
 {
 	LOG(mLog, DEBUG) << "Delete";
+
+	mSurfaces.clear();
+	mLayers.clear();
+	mDisplays.clear();
+
+	update();
 }
 
 /*******************************************************************************
  * Public
  ******************************************************************************/
 
-DisplayPtr ObjectManager::createDisplay(const string& name, t_ilm_display id)
+DisplayPtr ObjectManager::createDisplay(const DisplayConfig& config)
 {
-	LOG(mLog, DEBUG) << "Create display name: " << name << ", id: " << id;
+	LOG(mLog, DEBUG) << "Create display name: " << config.name
+					 << ", id: " << config.id;
 
-	if (getDisplayByName(name) || getDisplayByID(id))
+	if (getDisplayByName(config.name) || getDisplayByID(config.id))
 	{
 		throw DmException("Display already exists",
 						  ILM_ERROR_RESOURCE_ALREADY_INUSE);
 	}
 
-	DisplayPtr display(new Display(name, id));
+	DisplayPtr display(new Display(config.name, config.id));
 
-	mDisplays[name] = display;
+	mDisplays[config.name] = display;
 
 	return display;
 }
@@ -60,20 +67,37 @@ DisplayPtr ObjectManager::getDisplayByID(t_ilm_display id) const
 	return getObjectByID<DisplayPtr, t_ilm_display>(id, mDisplays);
 }
 
-LayerPtr ObjectManager::createLayer(const string& name, t_ilm_layer id,
-									int width, int height)
+LayerPtr ObjectManager::createLayer(const LayerConfig& config)
 {
-	LOG(mLog, DEBUG) << "Create layer name: " << name << ", id: " << id;
+	LOG(mLog, DEBUG) << "Create layer name: " << config.name
+					 << ", id: " << config.id;
 
-	if (getLayerByName(name) || getLayerByID(id))
+	if (getLayerByName(config.name) || getLayerByID(config.id))
 	{
 		throw DmException("Layer already exists",
 						  ILM_ERROR_RESOURCE_ALREADY_INUSE);
 	}
 
-	LayerPtr layer(new Layer(name, id, width, height));
+	LayerPtr layer(new Layer(config.name, config.id,
+							 config.width, config.height));
 
-	mLayers[name] = layer;
+	layer->setVisibility(config.visibility);
+	layer->setOpacity(config.opacity);
+	layer->setOrder(config.order);
+	layer->setSourceRectangle(config.source);
+	layer->setDestinationRectangle(config.destination);
+
+	auto display = getDisplayByName(config.display);
+
+	if (!display)
+	{
+		throw DmException("Can't get display name: " + config.name,
+						  ILM_ERROR_RESOURCE_NOT_FOUND);
+	}
+
+	layer->setParent(display);
+
+	mLayers[config.name] = layer;
 
 	return layer;
 }
@@ -88,19 +112,20 @@ LayerPtr ObjectManager::getLayerByID(t_ilm_layer id) const
 	return getObjectByID<LayerPtr, t_ilm_layer>(id, mLayers);
 }
 
-SurfacePtr ObjectManager::createSurface(const string& name, t_ilm_surface id)
+SurfacePtr ObjectManager::createSurface(const SurfaceConfig& config)
 {
-	LOG(mLog, DEBUG) << "Create surface name: " << name << ", id: " << id;
+	LOG(mLog, DEBUG) << "Create surface name: " << config.name
+					 << ", id: " << config.id;
 
-	if (getSurfaceByName(name) || getSurfaceByID(id))
+	if (getSurfaceByName(config.name) || getSurfaceByID(config.id))
 	{
 		throw DmException("Surface already exists",
 						  ILM_ERROR_RESOURCE_ALREADY_INUSE);
 	}
 
-	SurfacePtr surface(new Surface(name, id));
+	SurfacePtr surface(new Surface(config.name, config.id));
 
-	mSurfaces[name] = surface;
+	mSurfaces[config.name] = surface;
 
 	return surface;
 }
@@ -120,6 +145,11 @@ void ObjectManager::deleteSurfaceByID(t_ilm_surface id)
 	auto surface = getSurfaceByID(id);
 
 	mSurfaces.erase(surface->getName());
+}
+
+void ObjectManager::update()
+{
+	IlmObject::updateAll();
 }
 
 /*******************************************************************************

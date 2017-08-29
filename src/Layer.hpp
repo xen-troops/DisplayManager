@@ -12,18 +12,24 @@
 
 #include <ilm/ilm_types.h>
 
-#include <xen/be/Log.hpp>
-
 #include "IlmObject.hpp"
 
-class Layer : public IlmObject<t_ilm_layer>
+class Layer : public IlmObject
 {
 public:
-	Layer(const std::string& name, t_ilm_layer id, int width, int height);
+	Layer(const std::string& name, t_ilm_layer id,
+		  t_ilm_uint width, t_ilm_uint height);
 	~Layer();
 
+	void setVisibility(t_ilm_bool visibility) override;
+	void setOpacity(t_ilm_float opacity) override;
+	void setSourceRectangle(const IlmRectangle& rect);
+	void setDestinationRectangle(const IlmRectangle& rect);
+
 private:
-	XenBackend::Log mLog;
+	void onAddChild(t_ilm_uint id) override;
+	void onRemoveChild(t_ilm_uint id) override;
+	void onUpdate(const std::vector<t_ilm_uint>& ids) override;
 };
 
 typedef std::shared_ptr<Layer> LayerPtr;

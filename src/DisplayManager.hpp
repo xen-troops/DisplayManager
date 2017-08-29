@@ -29,7 +29,6 @@ private:
 	void showDisplaysInfo();
 	void createDisplays();
 	void createLayers();
-
 };
 
 #endif /* SRC_DISPLAYMANAGER_HPP_ */
