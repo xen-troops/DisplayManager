@@ -115,12 +115,7 @@ void IlmObject::updateAll()
 		sUpdateList.pop_front();
 	}
 
-	auto ret = ilm_commitChanges();
-
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't commit changes");
-	}
+	ilm_commitChanges();
 }
 
 /*******************************************************************************
