@@ -8,24 +8,70 @@
 #ifndef SRC_ILMOBJECT_HPP_
 #define SRC_ILMOBJECT_HPP_
 
+#include <list>
+#include <memory>
 #include <string>
 
-template <typename T>
+#include <ilm/ilm_types.h>
+
+#include <xen/be/Log.hpp>
+
+struct IlmRectangle
+{
+	t_ilm_uint x;
+	t_ilm_uint y;
+	t_ilm_uint width;
+	t_ilm_uint height;
+};
+
+class IlmObject;
+
+typedef std::shared_ptr<IlmObject> IlmObjectPtr;
+
 class IlmObject
 {
 public:
-	IlmObject(const std::string& name, T id) : mName(name), mID(id) {}
+
+	IlmObject(const std::string& type, const std::string& name, t_ilm_uint id);
+	~IlmObject();
 
 	const std::string& getName() const { return mName; }
-	T getID() const { return mID; }
+	t_ilm_uint getID() const { return mID; }
 
-	void setParentName(const std::string& name) { mParentName = name; }
-	const std::string& getParentName() const { return mParentName; }
+	virtual void setVisibility(t_ilm_bool visibility) = 0;
+	virtual void setOpacity(t_ilm_float opacity) = 0;
+	void setOrder(int order);
+	void setParent(IlmObjectPtr parent);
+	void update();
+	static void updateAll();
 
 protected:
 	std::string mName;
-	T mID;
-	std::string mParentName;
+	t_ilm_uint mID;
+	IlmObjectPtr mParent;
+	int mOrder;
+	XenBackend::Log mLog;
+
+private:
+	struct Child
+	{
+		t_ilm_uint id;
+		int order;
+	};
+
+	std::list<Child> mChildren;
+	static std::list<IlmObjectPtr> sUpdateList;
+
+	static void addToUpdateList(IlmObjectPtr object);
+
+	void addChild(t_ilm_uint id, int order);
+	void removeChild(t_ilm_uint id);
+	void addChildToList(t_ilm_uint id, int order);
+	void removeChildFromList(t_ilm_uint id);
+
+	virtual void onAddChild(t_ilm_uint id) = 0;
+	virtual void onRemoveChild(t_ilm_uint id) = 0;
+	virtual void onUpdate(const std::vector<t_ilm_uint>& ids) = 0;
 };
 
 

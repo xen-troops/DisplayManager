@@ -19,29 +19,59 @@ using std::to_string;
  ******************************************************************************/
 
 Display::Display(const string& name, t_ilm_display id) :
-	IlmObject<t_ilm_display>(name, id),
-	mLog("Display" + to_string(id))
+	IlmObject("Display", name, id)
 {
 	ilmErrorTypes ret = ILM_SUCCESS;
 
 	if ((ret = ilm_getScreenResolution(mID, &mWidth, &mHeight)) != ILM_SUCCESS)
 	{
-		throw DmException("Can't get screen " + to_string(id) + ", resolution",
+		throw DmException("Can't get screen " + to_string(mID) + " resolution",
 						  ret);
 	}
-
-	LOG(mLog, DEBUG) << "Create display id: " << mID
-					 << ", width: " << mWidth
-					 << ", height: " << mHeight;
 }
 
 Display::~Display()
 {
-	LOG(mLog, DEBUG) << "Delete display id: " << mID;
 }
 
 /*******************************************************************************
  * Public
  ******************************************************************************/
 
+void Display::setVisibility(t_ilm_bool visibility)
+{
+	throw DmException("Can't set visibility for display " + to_string(mID));
+}
 
+void Display::setOpacity(t_ilm_float opacity)
+{
+	throw DmException("Can't set opacity for display " + to_string(mID));
+}
+
+/*******************************************************************************
+ * Private
+ ******************************************************************************/
+
+void Display::onAddChild(t_ilm_uint id)
+{
+	// do nothing
+}
+
+void Display::onRemoveChild(t_ilm_uint id)
+{
+	// do nothing
+}
+
+void Display::onUpdate(const std::vector<t_ilm_uint>& ids)
+{
+	LOG(mLog, DEBUG) << "Set render order: " << ids.size();
+
+	ilmErrorTypes ret = ILM_SUCCESS;
+
+	if ((ret = ilm_displaySetRenderOrder(mID,
+			const_cast<t_ilm_layer*>(ids.data()), ids.size())) != ILM_SUCCESS)
+	{
+		throw DmException("Can't set screen " + to_string(mID) + "render order",
+						  ret);
+	}
+}

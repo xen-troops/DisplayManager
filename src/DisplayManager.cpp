@@ -10,7 +10,9 @@
 #include "Exception.hpp"
 
 using std::exception;
+using std::find;
 using std::to_string;
+using std::vector;
 
 /*******************************************************************************
  * DisplayManager
@@ -32,6 +34,8 @@ DisplayManager::DisplayManager(ConfigPtr config) :
 	showDisplaysInfo();
 	createDisplays();
 	createLayers();
+
+	mObjects.update();
 
 	mEvents = new EventHandler(mObjects, mConfig);
 }
@@ -99,21 +103,20 @@ void DisplayManager::createDisplays()
 
 		mConfig->getDisplayConfig(i, config);
 
-		mObjects.createDisplay(config.name, config.id);
+		mObjects.createDisplay(config);
 	}
 }
 
 void DisplayManager::createLayers()
 {
+	vector<IlmObjectPtr> updateObjects;
+
 	for(int i = 0; i < mConfig->getLayersCount(); i++)
 	{
 		LayerConfig config;
 
 		mConfig->getLayerConfig(i, config);
 
-		mObjects.createLayer(config.name, config.id,
-							 config.width, config.height);
+		mObjects.createLayer(config);
 	}
 }
-
-

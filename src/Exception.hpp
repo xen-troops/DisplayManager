@@ -32,7 +32,7 @@ public:
 	/**
 	 * @param msg error message
 	 */
-	explicit DmException(const std::string& msg, int error) :
+	explicit DmException(const std::string& msg, int error = ILM_FAILED) :
 		mMsg(msg + " (Error: " + std::to_string(error) + ")") {};
 
 	virtual ~DmException() {}

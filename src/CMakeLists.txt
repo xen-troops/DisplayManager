@@ -38,6 +38,7 @@ set(SOURCES
 	Display.cpp
 	DisplayManager.cpp
 	EventHandler.cpp
+	IlmObject.cpp
 	Layer.cpp
 	ObjectManager.cpp
 	Surface.cpp

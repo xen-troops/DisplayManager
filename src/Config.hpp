@@ -27,9 +27,9 @@
 
 #include <libconfig.h++>
 
-#include <ilm/ilm_types.h>
-
 #include <xen/be/Log.hpp>
+
+#include "IlmObject.hpp"
 
 /***************************************************************************//**
  * @defgroup config Config
@@ -75,8 +75,14 @@ struct LayerConfig
 {
 	std::string name;
 	t_ilm_layer id;
-	int width;
-	int height;
+	std::string display;
+	t_ilm_uint width;
+	t_ilm_uint height;
+	IlmRectangle source;
+	IlmRectangle destination;
+	int order;
+	t_ilm_bool visibility;
+	t_ilm_float opacity;
 };
 
 /***************************************************************************//**
@@ -87,6 +93,11 @@ struct SurfaceConfig
 {
 	std::string name;
 	t_ilm_surface id;
+	std::string layer;
+	t_ilm_uint width;
+	t_ilm_uint height;
+	IlmRectangle source;
+	IlmRectangle destination;
 };
 
 /***************************************************************************//**
@@ -123,6 +134,7 @@ private:
 	int mSurfacesCount;
 
 	int readSectionCount(const std::string& name);
+	void readRectangle(libconfig::Setting& setting, IlmRectangle& rect);
 };
 
 typedef std::shared_ptr<Config> ConfigPtr;
