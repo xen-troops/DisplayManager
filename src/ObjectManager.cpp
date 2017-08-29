@@ -91,7 +91,7 @@ LayerPtr ObjectManager::createLayer(const LayerConfig& config)
 
 	if (!display)
 	{
-		throw DmException("Can't get display name: " + config.name,
+		throw DmException("Can't get display name: " + config.display,
 						  ILM_ERROR_RESOURCE_NOT_FOUND);
 	}
 
@@ -124,6 +124,22 @@ SurfacePtr ObjectManager::createSurface(const SurfaceConfig& config)
 	}
 
 	SurfacePtr surface(new Surface(config.name, config.id));
+
+	auto layer = getLayerByName(config.layer);
+
+	if (!layer)
+	{
+		throw DmException("Can't get layer name: " + config.layer,
+						  ILM_ERROR_RESOURCE_NOT_FOUND);
+	}
+
+	surface->setParent(layer);
+
+	surface->setVisibility(config.visibility);
+	surface->setOpacity(config.opacity);
+	surface->setOrder(config.order);
+	surface->setSourceRectangle(config.source);
+	surface->setDestinationRectangle(config.destination);
 
 	mSurfaces[config.name] = surface;
 

@@ -24,9 +24,9 @@ DisplayManager::DisplayManager(ConfigPtr config) :
 {
 	LOG(mLog, DEBUG) << "Create";
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_init();
 
-	if ((ret = ilm_init()) != ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
 		throw DmException("Can't initialize ilm", ret);
 	}
@@ -58,9 +58,9 @@ void DisplayManager::showDisplaysInfo()
 
 	try
 	{
-		ilmErrorTypes ret = ILM_SUCCESS;
+		auto ret = ilm_getScreenIDs(&numOfIDs, &screenIDs);
 
-		if ((ret = ilm_getScreenIDs(&numOfIDs, &screenIDs)) != ILM_SUCCESS)
+		if (ret != ILM_SUCCESS)
 		{
 			throw DmException("Can't get screen IDs", ret);
 		}
@@ -71,8 +71,9 @@ void DisplayManager::showDisplaysInfo()
 		{
 			ilmScreenProperties props;
 
-			if ((ret = ilm_getPropertiesOfScreen(screenIDs[i], &props)) !=
-				ILM_SUCCESS)
+			ret = ilm_getPropertiesOfScreen(screenIDs[i], &props);
+
+			if (ret != ILM_SUCCESS)
 			{
 				throw DmException("Can't get screen " +
 								  to_string(screenIDs[i]) + " properties",

@@ -8,6 +8,9 @@
 #include <algorithm>
 #include <vector>
 
+#include <ilm/ilm_control.h>
+
+#include "Exception.hpp"
 #include "IlmObject.hpp"
 
 using std::find;
@@ -110,6 +113,13 @@ void IlmObject::updateAll()
 	{
 		sUpdateList.front()->update();
 		sUpdateList.pop_front();
+	}
+
+	auto ret = ilm_commitChanges();
+
+	if (ret != ILM_SUCCESS)
+	{
+		throw DmException("Can't commit changes");
 	}
 }
 
