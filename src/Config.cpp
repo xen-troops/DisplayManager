@@ -111,6 +111,7 @@ void Config::getLayerConfig(int index, LayerConfig& config)
 
 		setting.lookupValue("visible", config.visibility);
 		setting.lookupValue("opacity", config.opacity);
+		setting.lookupValue("order", config.order);
 
 		config.source = { 0, 0, config.width, config.height };
 		config.destination = config.source;
@@ -124,8 +125,6 @@ void Config::getLayerConfig(int index, LayerConfig& config)
 		{
 			readRectangle(setting.lookup("destination"), config.destination);
 		}
-
-		setting.lookupValue("order", config.order);
 
 		LOG(mLog, DEBUG) << sectionName << "[" << index << "] name: "
 						 << config.name
@@ -144,6 +143,8 @@ void Config::getSurfaceConfig(int index, SurfaceConfig& config)
 
 	try
 	{
+		config = {};
+
 		Setting& setting = mConfig.lookup(sectionName)[index];
 
 		config.name = static_cast<const char*>(setting.lookup("name"));
@@ -151,6 +152,16 @@ void Config::getSurfaceConfig(int index, SurfaceConfig& config)
 		config.layer = static_cast<const char*>(setting.lookup("layer"));
 		config.width = setting.lookup("width");
 		config.height = setting.lookup("height");
+
+		config.visibility = 1;
+		config.opacity = 1.0;
+
+		setting.lookupValue("visible", config.visibility);
+		setting.lookupValue("opacity", config.opacity);
+		setting.lookupValue("order", config.order);
+
+		config.source = { 0, 0, config.width, config.height };
+		config.destination = config.source;
 
 		if (setting.exists("source"))
 		{

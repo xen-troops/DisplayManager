@@ -31,13 +31,47 @@ Surface::~Surface()
  * Public
  ******************************************************************************/
 
+void Surface::setSourceRectangle(const IlmRectangle& rect)
+{
+	LOG(mLog, DEBUG) << "Set source rectangle"
+					 << ", x: " << rect.x << ", y: " << rect.y
+					 << ", width: " << rect.width
+					 << ", height: " << rect.height;
+
+	auto ret = ilm_surfaceSetSourceRectangle(mID, rect.x, rect.y,
+											 rect.width, rect.height);
+
+	if (ret != ILM_SUCCESS)
+	{
+		throw DmException("Can't set surface source rectangle: " +
+						  to_string(mID), ret);
+	}
+}
+
+void Surface::setDestinationRectangle(const IlmRectangle& rect)
+{
+	LOG(mLog, DEBUG) << "Set destination rectangle"
+					 << ", x: " << rect.x << ", y: " << rect.y
+					 << ", width: " << rect.width
+					 << ", height: " << rect.height;
+
+	auto ret = ilm_surfaceSetDestinationRectangle(mID, rect.x, rect.y,
+												  rect.width, rect.height);
+
+	if (ret != ILM_SUCCESS)
+	{
+		throw DmException("Can't set surface destination rectangle: " +
+						  to_string(mID), ret);
+	}
+}
+
 void Surface::setVisibility(t_ilm_bool visibility)
 {
 	LOG(mLog, DEBUG) << "Set visibility: " << visibility;
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_surfaceSetVisibility(mID, visibility);
 
-	if ((ret = ilm_surfaceSetVisibility(mID, visibility)) != ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
 		throw DmException("Can't set surface visibility: " +
 						  to_string(mID), ret);
@@ -48,9 +82,9 @@ void Surface::setOpacity(t_ilm_float opacity)
 {
 	LOG(mLog, DEBUG) << "Set opacity: " << opacity;
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_surfaceSetOpacity(mID, opacity);
 
-	if ((ret = ilm_surfaceSetOpacity(mID, opacity)) != ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
 		throw DmException("Can't set surface opacity: " + to_string(mID), ret);
 	}

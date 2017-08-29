@@ -98,6 +98,9 @@ struct SurfaceConfig
 	t_ilm_uint height;
 	IlmRectangle source;
 	IlmRectangle destination;
+	int order;
+	t_ilm_bool visibility;
+	t_ilm_float opacity;
 };
 
 /***************************************************************************//**

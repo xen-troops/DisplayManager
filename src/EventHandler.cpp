@@ -24,10 +24,9 @@ EventHandler::EventHandler(ObjectManager& objects, ConfigPtr config) :
 {
 	LOG(mLog, DEBUG) << "Create";
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_registerNotification(sObjectNotification, this);
 
-	if ((ret = ilm_registerNotification(sObjectNotification, this)) !=
-		ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
 		throw DmException("Can't register notification, error", ret);
 	}
@@ -118,6 +117,8 @@ void EventHandler::createSurface(t_ilm_surface id)
 			LOG(mLog, DEBUG) << "Create surface, id: " << id;
 
 			mObjects.createSurface(config);
+
+			mObjects.update();
 
 			return;
 		}

@@ -22,22 +22,24 @@ Layer::Layer(const string& name, t_ilm_layer id,
 			 t_ilm_uint width, t_ilm_uint height) :
 	IlmObject("Layer", name, id)
 {
-	ilmErrorTypes ret = ILM_SUCCESS;
-
 	auto requestedID = mID;
 
-	if ((ret = ilm_layerCreateWithDimension(&mID, width, height)) !=
-		ILM_SUCCESS)
+	auto ret = ilm_layerCreateWithDimension(&mID, width, height);
+
+	if (ret != ILM_SUCCESS)
 	{
 		LOG(mLog, WARNING) << "Create layer failed. Trying to remove.";
 
-		if ((ret = ilm_layerRemove(mID)) != ILM_SUCCESS)
+		ret = ilm_layerRemove(mID);
+
+		if (ret != ILM_SUCCESS)
 		{
 			throw DmException("Failed to remove layer: " + to_string(mID), ret);
 		}
 
-		if ((ret = ilm_layerCreateWithDimension(&mID, width, height)) !=
-			ILM_SUCCESS)
+		ret = ilm_layerCreateWithDimension(&mID, width, height);
+
+		if (ret != ILM_SUCCESS)
 		{
 			throw DmException("Can't create layer: " + to_string(mID), ret);
 		}
@@ -65,9 +67,9 @@ void Layer::setVisibility(t_ilm_bool visibility)
 {
 	LOG(mLog, DEBUG) << "Set visibility: " << visibility;
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_layerSetVisibility(mID, visibility);
 
-	if ((ret = ilm_layerSetVisibility(mID, visibility)) != ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
 		throw DmException("Can't set layer visibility: " + to_string(mID), ret);
 	}
@@ -77,9 +79,9 @@ void Layer::setOpacity(t_ilm_float opacity)
 {
 	LOG(mLog, DEBUG) << "Set opacity: " << opacity;
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_layerSetOpacity(mID, opacity);
 
-	if ((ret = ilm_layerSetOpacity(mID, opacity)) != ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
 		throw DmException("Can't set layer opacity: " + to_string(mID), ret);
 	}
@@ -92,13 +94,12 @@ void Layer::setSourceRectangle(const IlmRectangle& rect)
 					 << ", width: " << rect.width
 					 << ", height: " << rect.height;
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_layerSetSourceRectangle(mID, rect.x, rect.y,
+										   rect.width, rect.height);
 
-	if ((ret = ilm_layerSetSourceRectangle(mID, rect.x, rect.y,
-										   rect.width, rect.height)) !=
-		ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
-		throw DmException("Can't set source rectangle: " +
+		throw DmException("Can't set layer source rectangle: " +
 						  to_string(mID), ret);
 	}
 }
@@ -110,13 +111,12 @@ void Layer::setDestinationRectangle(const IlmRectangle& rect)
 					 << ", width: " << rect.width
 					 << ", height: " << rect.height;
 
-	ilmErrorTypes ret = ILM_SUCCESS;
+	auto ret = ilm_layerSetDestinationRectangle(mID, rect.x, rect.y,
+												rect.width, rect.height);
 
-	if ((ret = ilm_layerSetDestinationRectangle(mID, rect.x, rect.y,
-												rect.width, rect.height)) !=
-		ILM_SUCCESS)
+	if (ret != ILM_SUCCESS)
 	{
-		throw DmException("Can't set source rectangle: " +
+		throw DmException("Can't set layer destination rectangle: " +
 						  to_string(mID), ret);
 	}
 }
@@ -127,15 +127,40 @@ void Layer::setDestinationRectangle(const IlmRectangle& rect)
 
 void Layer::onAddChild(t_ilm_uint id)
 {
+	LOG(mLog, DEBUG) << "Add surface " << id;
 
+	auto ret = ilm_layerAddSurface(mID, id);
+
+	if (ret != ILM_SUCCESS)
+	{
+		throw DmException("Can't add surface to layer: " + to_string(mID), ret);
+	}
 }
 
 void Layer::onRemoveChild(t_ilm_uint id)
 {
+	LOG(mLog, DEBUG) << "Remove surface " << id;
 
+	auto ret = ilm_layerRemoveSurface(mID, id);
+
+	if (ret != ILM_SUCCESS)
+	{
+		throw DmException("Can't remove surface from layer: " + to_string(mID),
+						  ret);
+	}
 }
 
 void Layer::onUpdate(const std::vector<t_ilm_uint>& ids)
 {
+	LOG(mLog, DEBUG) << "Set render order: " << ids.size();
 
+	auto ret = ilm_layerSetRenderOrder(mID,
+									   const_cast<t_ilm_layer*>(ids.data()),
+									   ids.size());
+
+	if (ret != ILM_SUCCESS)
+	{
+		throw DmException("Can't set layer " + to_string(mID) + "render order",
+						  ret);
+	}
 }

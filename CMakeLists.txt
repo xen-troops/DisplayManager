@@ -17,7 +17,7 @@ message(STATUS "CMAKE_INSTALL_PREFIX          = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS)
 message(STATUS "WITH_DOC                      = ${WITH_DOC}")
 message(STATUS)
-message(STATUS "XENBE_LOG_INCLUDE_PATH            = ${XENBE_LOG_INCLUDE_PATH}")
+message(STATUS "XENBE_LOG_INCLUDE_PATH        = ${XENBE_LOG_INCLUDE_PATH}")
 message(STATUS)
 
 ################################################################################

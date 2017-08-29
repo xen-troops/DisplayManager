@@ -23,8 +23,8 @@ public:
 
 	void setVisibility(t_ilm_bool visibility) override;
 	void setOpacity(t_ilm_float opacity) override;
-	void setSourceRectangle(const IlmRectangle& rect);
-	void setDestinationRectangle(const IlmRectangle& rect);
+	void setSourceRectangle(const IlmRectangle& rect) override;
+	void setDestinationRectangle(const IlmRectangle& rect) override;
 
 private:
 	void onAddChild(t_ilm_uint id) override;
