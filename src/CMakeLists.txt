@@ -34,6 +34,7 @@ include_directories(
 
 set(SOURCES
 	main.cpp
+	ActionManager.cpp
 	Config.cpp
 	Display.cpp
 	DisplayManager.cpp

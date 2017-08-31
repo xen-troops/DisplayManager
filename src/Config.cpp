@@ -52,6 +52,7 @@ Config::Config(const string& fileName) :
 		mDisplaysCount = readSectionCount("displays");
 		mLayersCount = readSectionCount("layers");
 		mSurfacesCount = readSectionCount("surfaces");
+		mEventsCount = readSectionCount("events");
 	}
 	catch(const FileIOException& e)
 	{
@@ -184,15 +185,284 @@ void Config::getSurfaceConfig(int index, SurfaceConfig& config)
 	}
 }
 
+void Config::getEventName(int index, string& name)
+{
+	string sectionName = "events";
+
+	try
+	{
+		Setting& setting = mConfig.lookup(sectionName)[index];
+
+		name = static_cast<const char*>(setting.lookup("event"));
+
+		LOG(mLog, DEBUG) << sectionName << "[" << index << "] event: " << name;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading " + sectionName);
+	}
+}
+
+void Config::getEventCreateConfig(int index, EventCreateConfig& config)
+{
+	string sectionName = "events";
+
+	try
+	{
+		Setting& setting = mConfig.lookup(sectionName)[index];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+
+		LOG(mLog, DEBUG) << sectionName << "[" << index << "] object: "
+						 << config.object << ", name: " << config.name;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading " + sectionName);
+	}
+}
+
+void Config::getEventDestroyConfig(int index, EventDestroyConfig& config)
+{
+	string sectionName = "events";
+
+	try
+	{
+		Setting& setting = mConfig.lookup(sectionName)[index];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+
+		LOG(mLog, DEBUG) << sectionName << "[" << index << "] object: "
+						 << config.object << ", name: " << config.name;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading " + sectionName);
+	}
+}
+
+int Config::getActionsCount(int eventIndex) const
+{
+	string sectionName = "events";
+
+	try
+	{
+		Setting& setting = mConfig.lookup(sectionName)[eventIndex];
+
+		int count = 0;
+
+		if (setting.exists("actions"))
+		{
+			count = setting.lookup("actions").getLength();
+		}
+
+		LOG(mLog, DEBUG) << "Actions count: " << count;
+
+		return count;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading " + sectionName);
+	}
+}
+
+void Config::getActionName(int eventIndex, int actionIndex, string& name)
+{
+	try
+	{
+		Setting& setting = mConfig.lookup("events")[eventIndex]
+								  .lookup("actions")[actionIndex];
+
+		name = static_cast<const char*>(setting.lookup("action"));
+
+		LOG(mLog, DEBUG) << "events[" << eventIndex
+						 << "].actions[" << actionIndex
+						 << "] action: " << name;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading actions");
+	}
+}
+
+void Config::getActionSourceConfig(int eventIndex, int actionIndex,
+								   ActionSourceConfig& config)
+{
+	try
+	{
+		Setting& setting = mConfig.lookup("events")[eventIndex]
+								  .lookup("actions")[actionIndex];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+
+		config.source = { static_cast<t_ilm_uint>(-1),
+						  static_cast<t_ilm_uint>(-1),
+						  static_cast<t_ilm_uint>(-1),
+						  static_cast<t_ilm_uint>(-1) };
+
+		readRectangle(setting, config.source);
+
+		LOG(mLog, DEBUG) << "events[" << eventIndex
+						 << "].actions[" << actionIndex
+						 << "] object: " << config.object
+						 << ", name: " << config.name
+						 << ", x: " << config.source.x
+						 << ", y: " << config.source.y
+						 << ", w: " << config.source.width
+						 << ", h: " << config.source.height;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading actions");
+	}
+}
+
+void Config::getActionDestinationConfig(int eventIndex, int actionIndex,
+										ActionDestinationConfig& config)
+{
+	try
+	{
+		Setting& setting = mConfig.lookup("events")[eventIndex]
+								  .lookup("actions")[actionIndex];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+
+		config.destination = { static_cast<t_ilm_uint>(-1),
+							   static_cast<t_ilm_uint>(-1),
+							   static_cast<t_ilm_uint>(-1),
+							   static_cast<t_ilm_uint>(-1) };
+
+		readRectangle(setting, config.destination);
+
+		LOG(mLog, DEBUG) << "events[" << eventIndex
+						 << "].actions[" << actionIndex
+						 << "] object: " << config.object
+						 << ", name: " << config.name
+						 << ", x: " << config.destination.x
+						 << ", y: " << config.destination.y
+						 << ", w: " << config.destination.width
+						 << ", h: " << config.destination.height;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading actions");
+	}
+}
+
+void Config::getActionParentConfig(int eventIndex, int actionIndex,
+								   ActionParentConfig& config)
+{
+	try
+	{
+		Setting& setting = mConfig.lookup("events")[eventIndex]
+								  .lookup("actions")[actionIndex];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+		config.parent = static_cast<const char*>(setting.lookup("parent"));
+
+		LOG(mLog, DEBUG) << "events[" << eventIndex
+						 << "].actions[" << actionIndex
+						 << "] object: " << config.object
+						 << ", name: " << config.name
+						 << ", parent: " << config.parent;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading actions");
+	}
+}
+
+void Config::getActionOrderConfig(int eventIndex, int actionIndex,
+								  ActionOrderConfig& config)
+{
+	try
+	{
+		Setting& setting = mConfig.lookup("events")[eventIndex]
+								  .lookup("actions")[actionIndex];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+		config.order = setting.lookup("order");
+
+		LOG(mLog, DEBUG) << "events[" << eventIndex
+						 << "].actions[" << actionIndex
+						 << "] object: " << config.object
+						 << ", name: " << config.name
+						 << ", order: " << config.order;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading actions");
+	}
+}
+
+void Config::getActionVisibilityConfig(int eventIndex, int actionIndex,
+									   ActionVisibilityConfig& config)
+{
+	try
+	{
+		Setting& setting = mConfig.lookup("events")[eventIndex]
+								  .lookup("actions")[actionIndex];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+		config.visibility = setting.lookup("visibility");
+
+		LOG(mLog, DEBUG) << "events[" << eventIndex
+						 << "].actions[" << actionIndex
+						 << "] object: " << config.object
+						 << ", name: " << config.name
+						 << ", visibility: " << config.visibility;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading actions");
+	}
+}
+
+void Config::getActionOpacityConfig(int eventIndex, int actionIndex,
+									ActionOpacityConfig& config)
+{
+	try
+	{
+		Setting& setting = mConfig.lookup("events")[eventIndex]
+								  .lookup("actions")[actionIndex];
+
+		config.object = static_cast<const char*>(setting.lookup("object"));
+		config.name = static_cast<const char*>(setting.lookup("name"));
+		config.opacity = setting.lookup("order");
+
+		LOG(mLog, DEBUG) << "events[" << eventIndex
+						 << "].actions[" << actionIndex
+						 << "] object: " << config.object
+						 << ", name: " << config.name
+						 << ", opacity: " << config.opacity;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading actions");
+	}
+}
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
 
-int Config::readSectionCount(const string& name)
+int Config::readSectionCount(const string& name) const
 {
 	try
 	{
-		auto count = mConfig.lookup(name).getLength();
+		int count = 0;
+
+		if (mConfig.exists(name))
+		{
+			count = mConfig.lookup(name).getLength();
+		}
 
 		LOG(mLog, DEBUG) << name << " count: " << count;
 

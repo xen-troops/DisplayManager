@@ -104,6 +104,93 @@ struct SurfaceConfig
 };
 
 /***************************************************************************//**
+ * EventCreate configuration
+ * @ingroup config
+ ******************************************************************************/
+struct EventCreateConfig
+{
+	std::string object;
+	std::string name;
+};
+
+/***************************************************************************//**
+ * EventDestroy configuration
+ * @ingroup config
+ ******************************************************************************/
+struct EventDestroyConfig
+{
+	std::string object;
+	std::string name;
+};
+
+/***************************************************************************//**
+ * ActionSource configuration
+ * @ingroup config
+ ******************************************************************************/
+struct ActionSourceConfig
+{
+	std::string object;
+	std::string name;
+	IlmRectangle source;
+};
+
+/***************************************************************************//**
+ * ActionDestination configuration
+ * @ingroup config
+ ******************************************************************************/
+struct ActionDestinationConfig
+{
+	std::string object;
+	std::string name;
+	IlmRectangle destination;
+};
+
+
+/***************************************************************************//**
+ * ActionParent configuration
+ * @ingroup config
+ ******************************************************************************/
+struct ActionParentConfig
+{
+	std::string object;
+	std::string name;
+	std::string parent;
+};
+
+/***************************************************************************//**
+ * ActionOrder configuration
+ * @ingroup config
+ ******************************************************************************/
+struct ActionOrderConfig
+{
+	std::string object;
+	std::string name;
+	int order;
+};
+
+/***************************************************************************//**
+ * ActionVisibility configuration
+ * @ingroup config
+ ******************************************************************************/
+struct ActionVisibilityConfig
+{
+	std::string object;
+	std::string name;
+	t_ilm_bool visibility;
+};
+
+/***************************************************************************//**
+ * ActionOpacity configuration
+ * @ingroup config
+ ******************************************************************************/
+struct ActionOpacityConfig
+{
+	std::string object;
+	std::string name;
+	t_ilm_float opacity;
+};
+
+/***************************************************************************//**
  * Provides different settings for backends.
  * @ingroup config
  ******************************************************************************/
@@ -116,14 +203,34 @@ public:
 	 */
 	Config(const std::string& fileName);
 
-	const int getDisplaysCount() { return mDisplaysCount; }
+	int getDisplaysCount() const { return mDisplaysCount; }
 	void getDisplayConfig(int index, DisplayConfig& config);
 
-	const int getLayersCount() { return mLayersCount; }
+	int getLayersCount() const { return mLayersCount; }
 	void getLayerConfig(int index, LayerConfig& config);
 
-	const int getSurfacesCount() { return mSurfacesCount; }
+	int getSurfacesCount() const { return mSurfacesCount; }
 	void getSurfaceConfig(int index, SurfaceConfig& config);
+
+	int getEventsCount() const { return mEventsCount; }
+	void getEventName(int index, std::string& name);
+	void getEventCreateConfig(int index, EventCreateConfig& config);
+	void getEventDestroyConfig(int index, EventDestroyConfig& config);
+
+	int getActionsCount(int eventIndex) const;
+	void getActionName(int eventIndex, int actionIndex, std::string& name);
+	void getActionSourceConfig(int eventIndex, int actionIndex,
+							   ActionSourceConfig& config);
+	void getActionDestinationConfig(int eventIndex, int actionIndex,
+									ActionDestinationConfig& config);
+	void getActionParentConfig(int eventIndex, int actionIndex,
+							   ActionParentConfig& config);
+	void getActionOrderConfig(int eventIndex, int actionIndex,
+							  ActionOrderConfig& config);
+	void getActionVisibilityConfig(int eventIndex, int actionIndex,
+								   ActionVisibilityConfig& config);
+	void getActionOpacityConfig(int eventIndex, int actionIndex,
+								ActionOpacityConfig& config);
 
 private:
 
@@ -135,8 +242,9 @@ private:
 	int mDisplaysCount;
 	int mLayersCount;
 	int mSurfacesCount;
+	int mEventsCount;
 
-	int readSectionCount(const std::string& name);
+	int readSectionCount(const std::string& name) const;
 	void readRectangle(libconfig::Setting& setting, IlmRectangle& rect);
 };
 
