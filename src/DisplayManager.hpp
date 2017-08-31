@@ -8,6 +8,7 @@
 #ifndef SRC_DISPLAYMANAGER_HPP_
 #define SRC_DISPLAYMANAGER_HPP_
 
+#include "ActionManager.hpp"
 #include "Config.hpp"
 #include "EventHandler.hpp"
 #include "ObjectManager.hpp"
@@ -20,11 +21,11 @@ public:
 
 private:
 	ConfigPtr mConfig;
-
-	XenBackend::Log mLog;
-
 	EventHandler* mEvents;
 	ObjectManager mObjects;
+	ActionManager mActions;
+
+	XenBackend::Log mLog;
 
 	void showDisplaysInfo();
 	void createDisplays();
