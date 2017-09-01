@@ -12,6 +12,7 @@
 #include "Exception.hpp"
 
 using std::string;
+using std::to_string;
 using std::toupper;
 using std::transform;
 using std::vector;
@@ -22,11 +23,12 @@ using std::vector;
 
 ActionManager::ActionManager(ObjectManager& objects, ConfigPtr config) :
 	mObjects(objects),
+	mConfig(config),
 	mLog("ActionManager")
 {
 	LOG(mLog, DEBUG) << "Create";
 
-	init(config);
+	init();
 }
 
 ActionManager::~ActionManager()
@@ -37,6 +39,79 @@ ActionManager::~ActionManager()
 /*******************************************************************************
  * Public
  ******************************************************************************/
+
+void ActionManager::createLayer(t_ilm_layer id)
+{
+	if (mObjects.getLayerByID(id))
+	{
+		LOG(mLog, DEBUG) << "Create layer, id: " << id;
+
+		return;
+	}
+
+	LOG(mLog, WARNING) << "Unhandled layer " << id << " created";
+}
+
+void ActionManager::deleteLayer(t_ilm_layer id)
+{
+	if (mObjects.getLayerByID(id))
+	{
+		LOG(mLog, DEBUG) << "Deletes layer, id: " << id;
+
+		return;
+	}
+
+	LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
+}
+
+void ActionManager::createSurface(t_ilm_surface id)
+{
+	for(int i = 0; i < mConfig->getSurfacesCount(); i++)
+	{
+		SurfaceConfig config;
+
+		mConfig->getSurfaceConfig(i, config);
+
+		if (id == config.id)
+		{
+			LOG(mLog, DEBUG) << "Create surface, id: " << id;
+
+			auto surface = mObjects.createSurface(config);
+
+			onCreateSurface(surface->getName());
+
+			mObjects.update();
+
+			return;
+		}
+	}
+
+	LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
+}
+
+void ActionManager::deleteSurface(t_ilm_surface id)
+{
+	if (mObjects.getSurfaceByID(id))
+	{
+		LOG(mLog, DEBUG) << "Delete surface, id: " << id;
+
+		auto surface = mObjects.getSurfaceByID(id);
+
+		if (!surface)
+		{
+			throw DmException("Can't find surface " + to_string(id));
+		}
+		onDeleteSurface(surface->getName());
+
+		mObjects.deleteSurfaceByName(surface->getName());
+
+		mObjects.update();
+
+		return;
+	}
+
+	LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
+}
 
 /*******************************************************************************
  * Private
@@ -64,13 +139,13 @@ const vector<ActionManager::ActionsTable> ActionManager::sActionsTable =
 	{ ActionType::OPACITY,     "OPACITY"     }
 };
 
-void ActionManager::init(ConfigPtr config)
+void ActionManager::init()
 {
-	for(int i = 0; i < config->getEventsCount(); i++)
+	for(int i = 0; i < mConfig->getEventsCount(); i++)
 	{
 		string name;
 
-		config->getEventName(i, name);
+		mConfig->getEventName(i, name);
 
 		EventPtr event;
 
@@ -80,13 +155,13 @@ void ActionManager::init(ConfigPtr config)
 		{
 			case EventType::CREATE:
 			{
-				event = createEventCreate(i, config);
+				event = createEventCreate(i);
 
 				break;
 			}
 			case EventType::DESTROY:
 			{
-				event = createEventDestroy(i, config);
+				event = createEventDestroy(i);
 
 				break;
 			}
@@ -99,48 +174,47 @@ void ActionManager::init(ConfigPtr config)
 			}
 		}
 
-		createEventActions(i, event, config);
+		createEventActions(i, event);
 
 		mEvents.push_back(event);
 	}
 }
 
-EventPtr ActionManager::createEventCreate(int eventIndex, ConfigPtr config)
+EventPtr ActionManager::createEventCreate(int eventIndex)
 {
 	EventCreateConfig createConfig;
 
-	config->getEventCreateConfig(eventIndex, createConfig);
+	mConfig->getEventCreateConfig(eventIndex, createConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, createConfig.object);
 
-	return EventPtr(new EventCreate(EventType::CREATE, objectType,
+	return EventPtr(new EventObject(EventType::CREATE, objectType,
 									createConfig.name));
 }
 
-EventPtr ActionManager::createEventDestroy(int eventIndex, ConfigPtr config)
+EventPtr ActionManager::createEventDestroy(int eventIndex)
 {
 	EventDestroyConfig destroyConfig;
 
-	config->getEventDestroyConfig(eventIndex, destroyConfig);
+	mConfig->getEventDestroyConfig(eventIndex, destroyConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, destroyConfig.object);
 
-	return EventPtr(new EventDestroy(EventType::DESTROY, objectType,
-									 destroyConfig.name));
+	return EventPtr(new EventObject(EventType::DESTROY, objectType,
+									destroyConfig.name));
 }
 
-void ActionManager::createEventActions(int eventIndex, EventPtr event,
-									   ConfigPtr config)
+void ActionManager::createEventActions(int eventIndex, EventPtr event)
 {
-	auto count = config->getActionsCount(eventIndex);
+	auto count = mConfig->getActionsCount(eventIndex);
 
 	for(int i = 0; i < count; i++)
 	{
 		string name;
 
-		config->getActionName(eventIndex, i, name);
+		mConfig->getActionName(eventIndex, i, name);
 
 		ActionPtr action;
 
@@ -151,42 +225,42 @@ void ActionManager::createEventActions(int eventIndex, EventPtr event,
 		{
 			case ActionType::SOURCE:
 			{
-				action = createActionSource(eventIndex, i, config);
+				action = createActionSource(eventIndex, i);
 
 				break;
 			}
 
 			case ActionType::DESTINATION:
 			{
-				action = createActionDestination(eventIndex, i, config);
+				action = createActionDestination(eventIndex, i);
 
 				break;
 			}
 
 			case ActionType::PARENT:
 			{
-				action = createActionParent(eventIndex, i, config);
+				action = createActionParent(eventIndex, i);
 
 				break;
 			}
 
 			case ActionType::ORDER:
 			{
-				action = createActionOrder(eventIndex, i, config);
+				action = createActionOrder(eventIndex, i);
 
 				break;
 			}
 
 			case ActionType::VISIBILITY:
 			{
-				action = createActionVisibility(eventIndex, i, config);
+				action = createActionVisibility(eventIndex, i);
 
 				break;
 			}
 
 			case ActionType::OPACITY:
 			{
-				action = createActionOpacity(eventIndex, i, config);
+				action = createActionOpacity(eventIndex, i);
 
 				break;
 			}
@@ -203,12 +277,11 @@ void ActionManager::createEventActions(int eventIndex, EventPtr event,
 	}
 }
 
-ActionPtr ActionManager::createActionSource(int eventIndex, int actionIndex,
-											ConfigPtr config)
+ActionPtr ActionManager::createActionSource(int eventIndex, int actionIndex)
 {
 	ActionSourceConfig sourceConfig;
 
-	config->getActionSourceConfig(eventIndex, actionIndex, sourceConfig);
+	mConfig->getActionSourceConfig(eventIndex, actionIndex, sourceConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, sourceConfig.object);
@@ -218,13 +291,12 @@ ActionPtr ActionManager::createActionSource(int eventIndex, int actionIndex,
 }
 
 ActionPtr ActionManager::createActionDestination(int eventIndex,
-												 int actionIndex,
-												 ConfigPtr config)
+												 int actionIndex)
 {
 	ActionDestinationConfig destinationConfig;
 
-	config->getActionDestinationConfig(eventIndex, actionIndex,
-									   destinationConfig);
+	mConfig->getActionDestinationConfig(eventIndex, actionIndex,
+										destinationConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, destinationConfig.object);
@@ -234,12 +306,11 @@ ActionPtr ActionManager::createActionDestination(int eventIndex,
 									  destinationConfig.destination));
 }
 
-ActionPtr ActionManager::createActionParent(int eventIndex, int actionIndex,
-											ConfigPtr config)
+ActionPtr ActionManager::createActionParent(int eventIndex, int actionIndex)
 {
 	ActionParentConfig parentConfig;
 
-	config->getActionParentConfig(eventIndex, actionIndex, parentConfig);
+	mConfig->getActionParentConfig(eventIndex, actionIndex, parentConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, parentConfig.object);
@@ -248,12 +319,11 @@ ActionPtr ActionManager::createActionParent(int eventIndex, int actionIndex,
 									  parentConfig.parent));
 }
 
-ActionPtr ActionManager::createActionOrder(int eventIndex, int actionIndex,
-										   ConfigPtr config)
+ActionPtr ActionManager::createActionOrder(int eventIndex, int actionIndex)
 {
 	ActionOrderConfig orderConfig;
 
-	config->getActionOrderConfig(eventIndex, actionIndex, orderConfig);
+	mConfig->getActionOrderConfig(eventIndex, actionIndex, orderConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, orderConfig.object);
@@ -262,13 +332,12 @@ ActionPtr ActionManager::createActionOrder(int eventIndex, int actionIndex,
 									 orderConfig.order));
 }
 
-ActionPtr ActionManager::createActionVisibility(int eventIndex, int actionIndex,
-												ConfigPtr config)
+ActionPtr ActionManager::createActionVisibility(int eventIndex, int actionIndex)
 {
 	ActionVisibilityConfig visibilityConfig;
 
-	config->getActionVisibilityConfig(eventIndex, actionIndex,
-									  visibilityConfig);
+	mConfig->getActionVisibilityConfig(eventIndex, actionIndex,
+									   visibilityConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, visibilityConfig.object);
@@ -278,12 +347,11 @@ ActionPtr ActionManager::createActionVisibility(int eventIndex, int actionIndex,
 										  visibilityConfig.visibility));
 }
 
-ActionPtr ActionManager::createActionOpacity(int eventIndex, int actionIndex,
-											 ConfigPtr config)
+ActionPtr ActionManager::createActionOpacity(int eventIndex, int actionIndex)
 {
 	ActionOpacityConfig opacityConfig;
 
-	config->getActionOpacityConfig(eventIndex, actionIndex, opacityConfig);
+	mConfig->getActionOpacityConfig(eventIndex, actionIndex, opacityConfig);
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, opacityConfig.object);
@@ -310,3 +378,45 @@ T ActionManager::getType(const vector<S>& table, const string& name)
 
 	throw DmException("Unknown type " + name);
 }
+
+EventPtr ActionManager::getObjectEvent(EventType eventType,
+									   ObjectType objectType,
+									   const string& name)
+{
+	for(auto event : mEvents)
+	{
+		if (event->getEventType() == eventType)
+		{
+			auto eventObject = dynamic_cast<EventObject*>(event.get());
+
+			if (eventObject->getObjectType() == objectType &&
+				eventObject->getName() == name)
+			{
+				return event;
+			}
+		}
+	}
+
+	return EventPtr();
+}
+
+void ActionManager::onCreateSurface(const std::string& name)
+{
+	auto event = getObjectEvent(EventType::CREATE, ObjectType::SURFACE, name);
+
+	if (event)
+	{
+		event->doActions();
+	}
+}
+
+void ActionManager::onDeleteSurface(const std::string& name)
+{
+	auto event = getObjectEvent(EventType::DESTROY, ObjectType::SURFACE, name);
+
+	if (event)
+	{
+		event->doActions();
+	}
+}
+

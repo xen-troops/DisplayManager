@@ -14,17 +14,16 @@
 #include <xen/be/Log.hpp>
 
 #include "Config.hpp"
-#include "ObjectManager.hpp"
+#include "ActionManager.hpp"
 
 class EventHandler
 {
 public:
-	EventHandler(ObjectManager& objects, ConfigPtr config);
+	EventHandler(ActionManager& actions);
 	~EventHandler();
 
 private:
-	ObjectManager& mObjects;
-	ConfigPtr mConfig;
+	ActionManager& mActions;
 
 	XenBackend::Log mLog;
 

@@ -17,9 +17,8 @@ using std::exception;
  * EventHandler
  ******************************************************************************/
 
-EventHandler::EventHandler(ObjectManager& objects, ConfigPtr config) :
-	mObjects(objects),
-	mConfig(config),
+EventHandler::EventHandler(ActionManager& actions) :
+	mActions(actions),
 	mLog("EventHandler")
 {
 	LOG(mLog, DEBUG) << "Create";
@@ -54,11 +53,11 @@ void EventHandler::objectNotification(ilmObjectType object, t_ilm_uint id,
 		{
 			if (created)
 			{
-				createSurface(id);
+				mActions.createSurface(id);
 			}
 			else
 			{
-				deleteSurface(id);
+				mActions.deleteSurface(id);
 			}
 		}
 
@@ -66,11 +65,11 @@ void EventHandler::objectNotification(ilmObjectType object, t_ilm_uint id,
 		{
 			if (created)
 			{
-				createLayer(id);
+				mActions.createLayer(id);
 			}
 			else
 			{
-				deleteLayer(id);
+				mActions.deleteLayer(id);
 			}
 		}
 	}
@@ -80,65 +79,3 @@ void EventHandler::objectNotification(ilmObjectType object, t_ilm_uint id,
 	}
 }
 
-void EventHandler::createLayer(t_ilm_layer id)
-{
-	if (mObjects.getLayerByID(id))
-	{
-		LOG(mLog, DEBUG) << "Create layer, id: " << id;
-
-		return;
-	}
-
-	LOG(mLog, WARNING) << "Unhandled layer " << id << " created";
-}
-
-void EventHandler::deleteLayer(t_ilm_layer id)
-{
-	if (mObjects.getLayerByID(id))
-	{
-		LOG(mLog, DEBUG) << "Deletes layer, id: " << id;
-
-		return;
-	}
-
-	LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
-}
-
-void EventHandler::createSurface(t_ilm_surface id)
-{
-	for(int i = 0; i < mConfig->getSurfacesCount(); i++)
-	{
-		SurfaceConfig config;
-
-		mConfig->getSurfaceConfig(i, config);
-
-		if (id == config.id)
-		{
-			LOG(mLog, DEBUG) << "Create surface, id: " << id;
-
-			mObjects.createSurface(config);
-
-			mObjects.update();
-
-			return;
-		}
-	}
-
-	LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
-}
-
-void EventHandler::deleteSurface(t_ilm_surface id)
-{
-	if (mObjects.getSurfaceByID(id))
-	{
-		LOG(mLog, DEBUG) << "Delete surface, id: " << id;
-
-		mObjects.deleteSurfaceByID(id);
-
-		mObjects.update();
-
-		return;
-	}
-
-	LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
-}
