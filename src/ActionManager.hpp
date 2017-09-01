@@ -189,25 +189,37 @@ class Event
 {
 public:
 	Event(EventType event) : mEvent(event) {}
+	virtual ~Event() {}
+
 	void addAction(ActionPtr action) { mActions.push_back(action); }
+	EventType getEventType() const { return mEvent; }
+	void doActions()
+	{
+		for(auto action : mActions)
+		{
+			action->perform();
+		}
+	}
 
 private:
 	EventType mEvent;
 	std::vector<ActionPtr> mActions;
 };
 
-class EventCreate : public Event
-{
-public:
-	EventCreate(EventType event, ObjectType object, const std::string& name) :
-		Event(event) {}
-};
 
-class EventDestroy : public Event
+class EventObject : public Event
 {
 public:
-	EventDestroy(EventType event, ObjectType object, const std::string& name) :
-		Event(event) {}
+	EventObject(EventType event, ObjectType object, const std::string& name) :
+		Event(event),
+		mObject(object),
+		mName(name) {}
+	ObjectType getObjectType() const { return mObject; }
+	std::string getName() const { return mName; }
+
+private:
+	ObjectType mObject;
+	std::string mName;
 };
 
 typedef std::shared_ptr<Event> EventPtr;
@@ -221,6 +233,12 @@ class ActionManager
 public:
 	ActionManager(ObjectManager& objects, ConfigPtr config);
 	~ActionManager();
+
+	void createLayer(t_ilm_layer id);
+	void deleteLayer(t_ilm_layer id);
+
+	void createSurface(t_ilm_surface id);
+	void deleteSurface(t_ilm_surface id);
 
 private:
 
@@ -249,28 +267,29 @@ private:
 	static const std::vector<ActionsTable> sActionsTable;
 
 	ObjectManager& mObjects;
+	ConfigPtr mConfig;
 	XenBackend::Log mLog;
 
 	std::vector<EventPtr> mEvents;
 
-	void init(ConfigPtr config);
-	EventPtr createEventCreate(int eventIndex, ConfigPtr config);
-	EventPtr createEventDestroy(int eventIndex, ConfigPtr config);
-	void createEventActions(int eventIndex, EventPtr event, ConfigPtr config);
-	ActionPtr createActionSource(int eventIndex, int actionIndex,
-								 ConfigPtr config);
-	ActionPtr createActionDestination(int eventIndex, int actionIndex,
-								 ConfigPtr config);
-	ActionPtr createActionParent(int eventIndex, int actionIndex,
-								 ConfigPtr config);
-	ActionPtr createActionOrder(int eventIndex, int actionIndex,
-								ConfigPtr config);
-	ActionPtr createActionVisibility(int eventIndex, int actionIndex,
-									 ConfigPtr config);
-	ActionPtr createActionOpacity(int eventIndex, int actionIndex,
-								  ConfigPtr config);
+	void init();
+	EventPtr createEventCreate(int eventIndex);
+	EventPtr createEventDestroy(int eventIndex);
+	void createEventActions(int eventIndex, EventPtr event);
+	ActionPtr createActionSource(int eventIndex, int actionIndex);
+	ActionPtr createActionDestination(int eventIndex, int actionIndex);
+	ActionPtr createActionParent(int eventIndex, int actionIndex);
+	ActionPtr createActionOrder(int eventIndex, int actionIndex);
+	ActionPtr createActionVisibility(int eventIndex, int actionIndex);
+	ActionPtr createActionOpacity(int eventIndex, int actionIndex);
 	template <typename T, typename S>
 	T getType(const std::vector<S>& table, const std::string& name);
+
+	EventPtr getObjectEvent(EventType eventType, ObjectType objectType,
+							const std::string& name);
+
+	void onCreateSurface(const std::string& name);
+	void onDeleteSurface(const std::string& name);
 };
 
 #endif /* SRC_ACTIONMANAGER_HPP_ */

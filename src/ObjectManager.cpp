@@ -156,16 +156,9 @@ SurfacePtr ObjectManager::getSurfaceByID(t_ilm_surface id) const
 	return getObjectByID<SurfacePtr, t_ilm_surface>(id, mSurfaces);
 }
 
-void ObjectManager::deleteSurfaceByID(t_ilm_surface id)
+void ObjectManager::deleteSurfaceByName(const string& name)
 {
-	auto surface = getSurfaceByID(id);
-
-	if (!surface)
-	{
-		throw DmException("Can't find surfece id " + to_string(id));
-	}
-
-	mSurfaces.erase(surface->getName());
+	mSurfaces.erase(name);
 }
 
 void ObjectManager::update()

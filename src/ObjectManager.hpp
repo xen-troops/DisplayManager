@@ -34,7 +34,7 @@ public:
 	SurfacePtr createSurface(const SurfaceConfig& config);
 	SurfacePtr getSurfaceByName(const std::string& name) const;
 	SurfacePtr getSurfaceByID(t_ilm_surface id) const;
-	void deleteSurfaceByID(t_ilm_surface id);
+	void deleteSurfaceByName(const std::string& name);
 
 	void update();
 

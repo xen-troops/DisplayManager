@@ -38,7 +38,7 @@ DisplayManager::DisplayManager(ConfigPtr config) :
 
 	mObjects.update();
 
-	mEvents = new EventHandler(mObjects, mConfig);
+	mEvents = new EventHandler(mActions);
 }
 
 DisplayManager::~DisplayManager()
