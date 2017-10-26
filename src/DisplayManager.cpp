@@ -32,19 +32,18 @@ DisplayManager::DisplayManager(ConfigPtr config) :
 		throw DmException("Can't initialize ilm", ret);
 	}
 
+
 	showDisplaysInfo();
 	createDisplays();
 	createLayers();
 
-	mObjects.update();
+	mEvents.reset(new EventHandler(mActions));
 
-	mEvents = new EventHandler(mActions);
+	mObjects.update();
 }
 
 DisplayManager::~DisplayManager()
 {
-	delete mEvents;
-
 	LOG(mLog, DEBUG) << "Delete";
 }
 
