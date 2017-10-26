@@ -9,6 +9,7 @@
 #define SRC_DISPLAYMANAGER_HPP_
 
 #include "ActionManager.hpp"
+#include "DBusServer.hpp"
 #include "Config.hpp"
 #include "EventHandler.hpp"
 #include "ObjectManager.hpp"
@@ -21,9 +22,10 @@ public:
 
 private:
 	ConfigPtr mConfig;
-	EventHandler* mEvents;
 	ObjectManager mObjects;
 	ActionManager mActions;
+	DBusServer mServer;
+	std::unique_ptr<EventHandler> mEvents;
 
 	XenBackend::Log mLog;
 
