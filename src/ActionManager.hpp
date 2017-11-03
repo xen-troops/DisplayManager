@@ -97,15 +97,17 @@ public:
 	ActionSource(ObjectManager& objects, ObjectType type,
 				 const std::string& name, const IlmRectangle& source) :
 		ActionObject(objects, type, name),
-		mSource(source) {}
+		mSource(source),
+		mLog("ActionSource") {}
 
 	void perform() override
 	{
-
+		LOG(mLog, DEBUG) << "Perform";
 	}
 
 private:
 	IlmRectangle mSource;
+	XenBackend::Log mLog;
 };
 
 class ActionDestination : public ActionObject
@@ -115,12 +117,19 @@ public:
 					  const std::string& name,
 					  const IlmRectangle& destination) :
 		ActionObject(objects, type, name),
-		mDestination(destination) {}
+		mDestination(destination),
+		mLog("ActionDestination") {}
 
-	void perform() override {}
+	void perform() override
+	{
+		LOG(mLog, DEBUG) << "Perform";
+
+		getObject()->setDestinationRectangle(mDestination);
+	}
 
 private:
 	IlmRectangle mDestination;
+	XenBackend::Log mLog;
 };
 
 class ActionParent : public ActionObject
@@ -129,12 +138,17 @@ public:
 	ActionParent(ObjectManager& objects, ObjectType type,
 				 const std::string& name, const std::string& parent) :
 		ActionObject(objects, type, name),
-		mParent(parent) {}
+		mParent(parent),
+		mLog("ActionParent") {}
 
-	void perform() override {}
+	void perform() override
+	{
+		LOG(mLog, DEBUG) << "Perform";
+	}
 
 private:
 	std::string mParent;
+	XenBackend::Log mLog;
 };
 
 class ActionOrder: public ActionObject
@@ -143,12 +157,17 @@ public:
 	ActionOrder(ObjectManager& objects, ObjectType type,
 				const std::string& name, int order) :
 		ActionObject(objects, type, name),
-		mOrder(order) {}
+		mOrder(order),
+		mLog("ActionOrder") {}
 
-	void perform() override {}
+	void perform() override
+	{
+		LOG(mLog, DEBUG) << "Perform";
+	}
 
 private:
 	int mOrder;
+	XenBackend::Log mLog;
 };
 
 class ActionVisibility: public ActionObject
@@ -157,12 +176,17 @@ public:
 	ActionVisibility(ObjectManager& objects, ObjectType type,
 					 const std::string& name, t_ilm_bool value) :
 		ActionObject(objects, type, name),
-		mValue(value) {}
+		mValue(value),
+		mLog("ActionVisibility") {}
 
-	void perform() override {}
+	void perform() override
+	{
+		LOG(mLog, DEBUG) << "Perform";
+	}
 
 private:
 	t_ilm_bool mValue;
+	XenBackend::Log mLog;
 };
 
 class ActionOpacity: public ActionObject
@@ -171,12 +195,17 @@ public:
 	ActionOpacity(ObjectManager& objects, ObjectType type,
 				  const std::string& name, t_ilm_float value) :
 		ActionObject(objects, type, name),
-		mValue(value) {}
+		mValue(value),
+		mLog("ActionOpacity") {}
 
-	void perform() override {}
+	void perform() override
+	{
+		LOG(mLog, DEBUG) << "Perform";
+	}
 
 private:
 	t_ilm_float mValue;
+	XenBackend::Log mLog;
 };
 
 typedef std::shared_ptr<Action> ActionPtr;
@@ -188,13 +217,18 @@ typedef std::shared_ptr<Action> ActionPtr;
 class Event
 {
 public:
-	Event(EventType event) : mEvent(event) {}
+	Event(EventType event) :
+		mEvent(event),
+		mLog("Event") {}
+
 	virtual ~Event() {}
 
 	void addAction(ActionPtr action) { mActions.push_back(action); }
 	EventType getEventType() const { return mEvent; }
 	void doActions()
 	{
+		LOG(mLog, DEBUG) << "Do actions: " << mActions.size();
+
 		for(auto action : mActions)
 		{
 			action->perform();
@@ -204,6 +238,7 @@ public:
 private:
 	EventType mEvent;
 	std::vector<ActionPtr> mActions;
+	XenBackend::Log mLog;
 };
 
 
