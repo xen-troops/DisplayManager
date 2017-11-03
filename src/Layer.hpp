@@ -19,7 +19,7 @@ class Layer : public IlmObject
 public:
 	Layer(const std::string& name, t_ilm_layer id,
 		  t_ilm_uint width, t_ilm_uint height);
-	~Layer();
+	virtual ~Layer();
 
 	void setVisibility(t_ilm_bool visibility) override;
 	void setOpacity(t_ilm_float opacity) override;
