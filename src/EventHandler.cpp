@@ -27,7 +27,7 @@ EventHandler::EventHandler(ActionManager& actions) :
 
 	if (ret != ILM_SUCCESS)
 	{
-		throw DmException("Can't register notification, error", ret);
+		throw DmException("Can't register notification", ret);
 	}
 }
 
