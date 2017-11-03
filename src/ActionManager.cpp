@@ -186,6 +186,9 @@ EventPtr ActionManager::createEventCreate(int eventIndex)
 
 	mConfig->getEventCreateConfig(eventIndex, createConfig);
 
+	LOG(mLog, DEBUG) << "event create, object: " << createConfig.object
+					 << ", name: " << createConfig.name;
+
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, createConfig.object);
 
@@ -198,6 +201,9 @@ EventPtr ActionManager::createEventDestroy(int eventIndex)
 	EventDestroyConfig destroyConfig;
 
 	mConfig->getEventDestroyConfig(eventIndex, destroyConfig);
+
+	LOG(mLog, DEBUG) << "event destroy, object: " << destroyConfig.object
+					 << ", name: " << destroyConfig.name;
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, destroyConfig.object);
@@ -283,6 +289,10 @@ ActionPtr ActionManager::createActionSource(int eventIndex, int actionIndex)
 
 	mConfig->getActionSourceConfig(eventIndex, actionIndex, sourceConfig);
 
+	LOG(mLog, DEBUG) << "action source, index:" << eventIndex
+					 << ", object: " << sourceConfig.object
+					 << ", name: " << sourceConfig.name;
+
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, sourceConfig.object);
 
@@ -298,12 +308,16 @@ ActionPtr ActionManager::createActionDestination(int eventIndex,
 	mConfig->getActionDestinationConfig(eventIndex, actionIndex,
 										destinationConfig);
 
+	LOG(mLog, DEBUG) << "action destination, index:" << eventIndex
+					 << ", object: " << destinationConfig.object
+					 << ", name: " << destinationConfig.name;
+
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, destinationConfig.object);
 
-	return ActionPtr(new ActionSource(mObjects, objectType,
-									  destinationConfig.name,
-									  destinationConfig.destination));
+	return ActionPtr(new ActionDestination(mObjects, objectType,
+										   destinationConfig.name,
+										   destinationConfig.destination));
 }
 
 ActionPtr ActionManager::createActionParent(int eventIndex, int actionIndex)
@@ -311,6 +325,10 @@ ActionPtr ActionManager::createActionParent(int eventIndex, int actionIndex)
 	ActionParentConfig parentConfig;
 
 	mConfig->getActionParentConfig(eventIndex, actionIndex, parentConfig);
+
+	LOG(mLog, DEBUG) << "action parent, index:" << eventIndex
+					 << ", object: " << parentConfig.object
+					 << ", name: " << parentConfig.name;
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, parentConfig.object);
@@ -324,6 +342,10 @@ ActionPtr ActionManager::createActionOrder(int eventIndex, int actionIndex)
 	ActionOrderConfig orderConfig;
 
 	mConfig->getActionOrderConfig(eventIndex, actionIndex, orderConfig);
+
+	LOG(mLog, DEBUG) << "action order, index:" << eventIndex
+					 << ", object: " << orderConfig.object
+					 << ", name: " << orderConfig.name;
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, orderConfig.object);
@@ -339,6 +361,10 @@ ActionPtr ActionManager::createActionVisibility(int eventIndex, int actionIndex)
 	mConfig->getActionVisibilityConfig(eventIndex, actionIndex,
 									   visibilityConfig);
 
+	LOG(mLog, DEBUG) << "action visibility, index:" << eventIndex
+					 << ", object: " << visibilityConfig.object
+					 << ", name: " << visibilityConfig.name;
+
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, visibilityConfig.object);
 
@@ -352,6 +378,10 @@ ActionPtr ActionManager::createActionOpacity(int eventIndex, int actionIndex)
 	ActionOpacityConfig opacityConfig;
 
 	mConfig->getActionOpacityConfig(eventIndex, actionIndex, opacityConfig);
+
+	LOG(mLog, DEBUG) << "action opacity, index:" << eventIndex
+					 << ", object: " << opacityConfig.object
+					 << ", name: " << opacityConfig.name;
 
 	auto objectType = getType<ObjectType, ObjectsTable>(
 			sObjectsTable, opacityConfig.object);
@@ -406,6 +436,8 @@ void ActionManager::onCreateSurface(const std::string& name)
 
 	if (event)
 	{
+		LOG(mLog, DEBUG) << "onCreateSurface, name: " << name;
+
 		event->doActions();
 	}
 }
@@ -416,6 +448,8 @@ void ActionManager::onDeleteSurface(const std::string& name)
 
 	if (event)
 	{
+		LOG(mLog, DEBUG) << "onDeleteSurface, name: " << name;
+
 		event->doActions();
 	}
 }
