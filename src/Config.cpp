@@ -295,6 +295,8 @@ void Config::getActionSourceConfig(int eventIndex, int actionIndex,
 		Setting& setting = mConfig.lookup("events")[eventIndex]
 								  .lookup("actions")[actionIndex];
 
+		config = {};
+
 		config.object = static_cast<const char*>(setting.lookup("object"));
 		config.name = static_cast<const char*>(setting.lookup("name"));
 
@@ -327,6 +329,8 @@ void Config::getActionDestinationConfig(int eventIndex, int actionIndex,
 	{
 		Setting& setting = mConfig.lookup("events")[eventIndex]
 								  .lookup("actions")[actionIndex];
+
+		config = {};
 
 		config.object = static_cast<const char*>(setting.lookup("object"));
 		config.name = static_cast<const char*>(setting.lookup("name"));
@@ -361,6 +365,8 @@ void Config::getActionParentConfig(int eventIndex, int actionIndex,
 		Setting& setting = mConfig.lookup("events")[eventIndex]
 								  .lookup("actions")[actionIndex];
 
+		config = {};
+
 		config.object = static_cast<const char*>(setting.lookup("object"));
 		config.name = static_cast<const char*>(setting.lookup("name"));
 		config.parent = static_cast<const char*>(setting.lookup("parent"));
@@ -384,6 +390,8 @@ void Config::getActionOrderConfig(int eventIndex, int actionIndex,
 	{
 		Setting& setting = mConfig.lookup("events")[eventIndex]
 								  .lookup("actions")[actionIndex];
+
+		config = {};
 
 		config.object = static_cast<const char*>(setting.lookup("object"));
 		config.name = static_cast<const char*>(setting.lookup("name"));
@@ -409,6 +417,8 @@ void Config::getActionVisibilityConfig(int eventIndex, int actionIndex,
 		Setting& setting = mConfig.lookup("events")[eventIndex]
 								  .lookup("actions")[actionIndex];
 
+		config = {};
+
 		config.object = static_cast<const char*>(setting.lookup("object"));
 		config.name = static_cast<const char*>(setting.lookup("name"));
 		config.visibility = setting.lookup("visibility");
@@ -432,6 +442,8 @@ void Config::getActionOpacityConfig(int eventIndex, int actionIndex,
 	{
 		Setting& setting = mConfig.lookup("events")[eventIndex]
 								  .lookup("actions")[actionIndex];
+
+		config = {};
 
 		config.object = static_cast<const char*>(setting.lookup("object"));
 		config.name = static_cast<const char*>(setting.lookup("name"));
