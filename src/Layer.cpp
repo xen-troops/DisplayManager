@@ -141,6 +141,8 @@ void Layer::onRemoveChild(t_ilm_uint id)
 {
 	LOG(mLog, DEBUG) << "Remove surface " << id;
 
+	// No need to remove if it is removed in system?
+#if 0
 	auto ret = ilm_layerRemoveSurface(mID, id);
 
 	if (ret != ILM_SUCCESS)
@@ -148,6 +150,7 @@ void Layer::onRemoveChild(t_ilm_uint id)
 		throw DmException("Can't remove surface from layer: " + to_string(mID),
 						  ret);
 	}
+#endif
 }
 
 void Layer::onUpdate(const std::vector<t_ilm_uint>& ids)
