@@ -22,6 +22,18 @@ struct IlmRectangle
 	t_ilm_uint y;
 	t_ilm_uint width;
 	t_ilm_uint height;
+
+	bool operator ==(const IlmRectangle& rect)
+	{
+		return rect.x == x && rect.y == rect.y &&
+			   width == rect.width && height == rect.height;
+	}
+
+	bool operator !=(const IlmRectangle& rect)
+	{
+		return rect.x != x || rect.y != rect.y ||
+			   width != rect.width || height != rect.height;
+	}
 };
 
 class IlmObject;
