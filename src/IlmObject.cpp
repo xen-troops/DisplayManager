@@ -136,8 +136,6 @@ void IlmObject::addToUpdateList(IlmObjectPtr object)
 
 void IlmObject::addChild(t_ilm_uint id, int order)
 {
-	LOG(mLog, DEBUG) << "Add child " << id;
-
 	onAddChild(id);
 
 	addChildToList(id, order);
@@ -160,8 +158,6 @@ void IlmObject::addChildToList(t_ilm_uint id, int order)
 
 void IlmObject::removeChild(t_ilm_uint id)
 {
-	LOG(mLog, DEBUG) << "Remove child " << id;
-
 	onRemoveChild(id);
 
 	removeChildFromList(id);

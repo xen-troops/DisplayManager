@@ -103,6 +103,8 @@ public:
 	void perform() override
 	{
 		LOG(mLog, DEBUG) << "Perform";
+
+		getObject()->setSource(mSource);
 	}
 
 private:
@@ -124,7 +126,7 @@ public:
 	{
 		LOG(mLog, DEBUG) << "Perform";
 
-		getObject()->setDestinationRectangle(mDestination);
+		getObject()->setDestination(mDestination);
 	}
 
 private:

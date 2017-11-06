@@ -38,15 +38,15 @@ Display::~Display()
  * Public
  ******************************************************************************/
 
-void Display::setSourceRectangle(const IlmRectangle& rect)
+void Display::setSource(const IlmRectangle& rect)
 {
-	throw DmException("Can't set source rectangle for display " +
+	throw DmException("Can't set source for display " +
 					  to_string(mID));
 }
 
-void Display::setDestinationRectangle(const IlmRectangle& rect)
+void Display::setDestination(const IlmRectangle& rect)
 {
-	throw DmException("Can't set destination rectangle for display " +
+	throw DmException("Can't set destination for display " +
 					  to_string(mID));
 }
 
