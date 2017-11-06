@@ -52,8 +52,8 @@ public:
 
 	virtual void setVisibility(t_ilm_bool visibility) = 0;
 	virtual void setOpacity(t_ilm_float opacity) = 0;
-	virtual void setSourceRectangle(const IlmRectangle& rect) = 0;
-	virtual void setDestinationRectangle(const IlmRectangle& rect) = 0;
+	virtual void setSource(const IlmRectangle& rect) = 0;
+	virtual void setDestination(const IlmRectangle& rect) = 0;
 
 	void setOrder(int order);
 	void setParent(IlmObjectPtr parent);

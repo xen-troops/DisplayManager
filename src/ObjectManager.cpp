@@ -84,8 +84,8 @@ LayerPtr ObjectManager::createLayer(const LayerConfig& config)
 	layer->setVisibility(config.visibility);
 	layer->setOpacity(config.opacity);
 	layer->setOrder(config.order);
-	layer->setSourceRectangle(config.source);
-	layer->setDestinationRectangle(config.destination);
+	layer->setSource(config.source);
+	layer->setDestination(config.destination);
 
 	auto display = getDisplayByName(config.display);
 
@@ -138,8 +138,8 @@ SurfacePtr ObjectManager::createSurface(const SurfaceConfig& config)
 	surface->setVisibility(config.visibility);
 	surface->setOpacity(config.opacity);
 	surface->setOrder(config.order);
-	surface->setSourceRectangle(config.source);
-	surface->setDestinationRectangle(config.destination);
+	surface->setSource(config.source);
+	surface->setDestination(config.destination);
 
 	mSurfaces[config.name] = surface;
 

@@ -19,19 +19,32 @@
 class EventHandler
 {
 public:
-	EventHandler(ActionManager& actions);
+	EventHandler(ObjectManager& objects, ActionManager& actions);
 	~EventHandler();
 
 private:
+	ObjectManager& mObjects;
 	ActionManager& mActions;
+
+	static EventHandler* mInstance;
 
 	XenBackend::Log mLog;
 
 	static void sObjectNotification(ilmObjectType object, t_ilm_uint id,
 									t_ilm_bool created, void* data);
+	static void sLayerNotification(t_ilm_layer id,
+								   ilmLayerProperties* properties,
+								   t_ilm_notification_mask mask);
+	static void sSurfaceNotification(t_ilm_surface id,
+									 ilmSurfaceProperties* properties,
+									 t_ilm_notification_mask mask);
 
 	void objectNotification(ilmObjectType object, t_ilm_uint id,
 							t_ilm_bool created);
+	void layerNotification(t_ilm_layer id, ilmLayerProperties* properties,
+						   t_ilm_notification_mask mask);
+	void surfaceNotification(t_ilm_surface id, ilmSurfaceProperties* properties,
+							 t_ilm_notification_mask mask);
 
 	void createLayer(t_ilm_layer id);
 	void deleteLayer(t_ilm_layer id);
