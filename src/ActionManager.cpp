@@ -56,7 +56,7 @@ void ActionManager::deleteLayer(t_ilm_layer id)
 {
 	if (mObjects.getLayerByID(id))
 	{
-		LOG(mLog, DEBUG) << "Deletes layer, id: " << id;
+		LOG(mLog, DEBUG) << "Delete layer, id: " << id;
 
 		return;
 	}
@@ -80,8 +80,6 @@ void ActionManager::createSurface(t_ilm_surface id)
 
 			onCreateSurface(surface->getName());
 
-			mObjects.update();
-
 			return;
 		}
 	}
@@ -101,16 +99,15 @@ void ActionManager::deleteSurface(t_ilm_surface id)
 		{
 			throw DmException("Can't find surface " + to_string(id));
 		}
+
 		onDeleteSurface(surface->getName());
 
 		mObjects.deleteSurfaceByName(surface->getName());
-
-		mObjects.update();
-
-		return;
 	}
-
-	LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
+	else
+	{
+		LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
+	}
 }
 
 /*******************************************************************************

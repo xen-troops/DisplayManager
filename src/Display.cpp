@@ -10,6 +10,7 @@
 #include <ilm/ilm_control.h>
 
 #include "Exception.hpp"
+#include "Utils.hpp"
 
 using std::string;
 using std::to_string;
@@ -76,7 +77,7 @@ void Display::onRemoveChild(t_ilm_uint id)
 
 void Display::onUpdate(const std::vector<t_ilm_uint>& ids)
 {
-	LOG(mLog, DEBUG) << "Set render order: " << ids.size();
+	LOG(mLog, DEBUG) << "Set render order: " << Utils::idsToStr(ids);
 
 	auto ret = ilm_displaySetRenderOrder(mID,
 										 const_cast<t_ilm_layer*>(ids.data()),

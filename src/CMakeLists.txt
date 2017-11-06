@@ -62,6 +62,7 @@ set(SOURCES
 	Layer.cpp
 	ObjectManager.cpp
 	Surface.cpp
+	Utils.cpp
 )
 
 ################################################################################
