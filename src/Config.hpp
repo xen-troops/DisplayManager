@@ -124,6 +124,15 @@ struct EventDestroyConfig
 };
 
 /***************************************************************************//**
+ * EventUser configuration
+ * @ingroup config
+ ******************************************************************************/
+struct EventUserConfig
+{
+	uint32_t id;
+};
+
+/***************************************************************************//**
  * ActionSource configuration
  * @ingroup config
  ******************************************************************************/
@@ -216,6 +225,7 @@ public:
 	void getEventName(int index, std::string& name);
 	void getEventCreateConfig(int index, EventCreateConfig& config);
 	void getEventDestroyConfig(int index, EventDestroyConfig& config);
+	void getEventUserConfig(int index, EventUserConfig& config);
 
 	int getActionsCount(int eventIndex) const;
 	void getActionName(int eventIndex, int actionIndex, std::string& name);

@@ -13,6 +13,7 @@
 #include "DBusItfIntrospectable.hpp"
 
 using std::bind;
+using std::exception;
 using std::make_shared;
 using std::thread;
 using namespace std::placeholders;
@@ -22,7 +23,8 @@ using namespace core::dbus;
 using namespace com::epam;
 using namespace org::freedesktop;
 
-DBusServer::DBusServer() :
+DBusServer::DBusServer(ActionManager& actions) :
+	mActions(actions),
 	mLog("DBusServer")
 {
 	mBus = make_shared<Bus>(WellKnownBus::session);
@@ -71,5 +73,16 @@ void DBusServer::introspectHandler(const core::dbus::Message::Ptr& msg)
 
 void DBusServer::userEventHandler(const Message::Ptr& msg)
 {
-	LOG(mLog, DEBUG) << "User event: " << msg->reader().pop_uint32();
+	try
+	{
+		auto id = msg->reader().pop_uint32();
+
+		LOG(mLog, DEBUG) << "User event: " << id;
+
+		mActions.userEvent(id);
+	}
+	catch(const exception& e)
+	{
+		LOG(mLog, ERROR) << e.what();
+	}
 }

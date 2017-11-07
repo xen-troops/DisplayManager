@@ -15,16 +15,19 @@
 
 #include <xen/be/Log.hpp>
 
+#include "ActionManager.hpp"
+
 class DBusServer
 {
 public:
-	DBusServer();
+	DBusServer(ActionManager& actions);
 	~DBusServer();
 
 private:
 	core::dbus::Bus::Ptr mBus;
 	core::dbus::Object::Ptr mObject;
 	std::thread mThread;
+	ActionManager& mActions;
 
 	XenBackend::Log mLog;
 
