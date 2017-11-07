@@ -24,7 +24,8 @@
 enum class EventType
 {
 	CREATE,
-	DESTROY
+	DESTROY,
+	USER
 };
 
 enum class ObjectType
@@ -50,18 +51,25 @@ enum class ActionType
 class Action
 {
 public:
+	Action(const std::string& name) : mName(name) {}
 	virtual ~Action() {}
+
+	std::string getName() const { return mName; }
 	virtual void perform() = 0;
+
+private:
+	std::string mName;
 };
 
 class ActionObject : public Action
 {
 public:
-	ActionObject(ObjectManager& objects, ObjectType type,
-				 const std::string& name) :
+	ActionObject(const std::string& actionName, ObjectManager& objects,
+				 ObjectType type, const std::string& objectName) :
+		Action(actionName),
 		mObjects(objects),
 		mType(type),
-		mName(name) {}
+		mObjectName(objectName) {}
 
 protected:
 	IlmObjectPtr getObject()
@@ -70,25 +78,25 @@ protected:
 
 		if (mType == ObjectType::LAYER)
 		{
-			object = mObjects.getLayerByName(mName);
+			object = mObjects.getLayerByName(mObjectName);
 		}
 		else if (mType == ObjectType::SURFACE)
 		{
-			object = mObjects.getSurfaceByName(mName);
+			object = mObjects.getSurfaceByName(mObjectName);
 		}
 
 		if (!object)
 		{
-			throw DmException("Object with " + mName + " doesn't exist");
+			throw DmException("Object " + mObjectName + " doesn't exist");
 		}
 
 		return object;
 	}
 
-private:
+protected:
 	ObjectManager& mObjects;
 	ObjectType mType;
-	std::string mName;
+	std::string mObjectName;
 };
 
 class ActionSource : public ActionObject
@@ -96,20 +104,16 @@ class ActionSource : public ActionObject
 public:
 	ActionSource(ObjectManager& objects, ObjectType type,
 				 const std::string& name, const IlmRectangle& source) :
-		ActionObject(objects, type, name),
-		mSource(source),
-		mLog("ActionSource") {}
+		ActionObject("SOURCE", objects, type, name),
+		mSource(source) {}
 
 	void perform() override
 	{
-		LOG(mLog, DEBUG) << "Perform";
-
 		getObject()->setSource(mSource);
 	}
 
 private:
 	IlmRectangle mSource;
-	XenBackend::Log mLog;
 };
 
 class ActionDestination : public ActionObject
@@ -118,20 +122,16 @@ public:
 	ActionDestination(ObjectManager& objects, ObjectType type,
 					  const std::string& name,
 					  const IlmRectangle& destination) :
-		ActionObject(objects, type, name),
-		mDestination(destination),
-		mLog("ActionDestination") {}
+		ActionObject("DESTINATION", objects, type, name),
+		mDestination(destination) {}
 
 	void perform() override
 	{
-		LOG(mLog, DEBUG) << "Perform";
-
 		getObject()->setDestination(mDestination);
 	}
 
 private:
 	IlmRectangle mDestination;
-	XenBackend::Log mLog;
 };
 
 class ActionParent : public ActionObject
@@ -139,18 +139,32 @@ class ActionParent : public ActionObject
 public:
 	ActionParent(ObjectManager& objects, ObjectType type,
 				 const std::string& name, const std::string& parent) :
-		ActionObject(objects, type, name),
-		mParent(parent),
-		mLog("ActionParent") {}
+		ActionObject("PARENT", objects, type, name),
+		mParentName(parent) {}
 
 	void perform() override
 	{
-		LOG(mLog, DEBUG) << "Perform";
+		IlmObjectPtr object;
+
+		if (mType == ObjectType::LAYER)
+		{
+			object = mObjects.getDisplayByName(mParentName);
+		}
+		else if (mType == ObjectType::SURFACE)
+		{
+			object = mObjects.getLayerByName(mParentName);
+		}
+
+		if (!object)
+		{
+			throw DmException("Parent " + mParentName + " doesn't exist");
+		}
+
+		getObject()->setParent(object);
 	}
 
 private:
-	std::string mParent;
-	XenBackend::Log mLog;
+	std::string mParentName;
 };
 
 class ActionOrder: public ActionObject
@@ -158,18 +172,16 @@ class ActionOrder: public ActionObject
 public:
 	ActionOrder(ObjectManager& objects, ObjectType type,
 				const std::string& name, int order) :
-		ActionObject(objects, type, name),
-		mOrder(order),
-		mLog("ActionOrder") {}
+		ActionObject("ORDER", objects, type, name),
+		mOrder(order) {}
 
 	void perform() override
 	{
-		LOG(mLog, DEBUG) << "Perform";
+		getObject()->setOrder(mOrder);
 	}
 
 private:
 	int mOrder;
-	XenBackend::Log mLog;
 };
 
 class ActionVisibility: public ActionObject
@@ -177,18 +189,16 @@ class ActionVisibility: public ActionObject
 public:
 	ActionVisibility(ObjectManager& objects, ObjectType type,
 					 const std::string& name, t_ilm_bool value) :
-		ActionObject(objects, type, name),
-		mValue(value),
-		mLog("ActionVisibility") {}
+		ActionObject("VISIBILITY", objects, type, name),
+		mValue(value) {}
 
 	void perform() override
 	{
-		LOG(mLog, DEBUG) << "Perform";
+		getObject()->setVisibility(mValue);
 	}
 
 private:
 	t_ilm_bool mValue;
-	XenBackend::Log mLog;
 };
 
 class ActionOpacity: public ActionObject
@@ -196,18 +206,16 @@ class ActionOpacity: public ActionObject
 public:
 	ActionOpacity(ObjectManager& objects, ObjectType type,
 				  const std::string& name, t_ilm_float value) :
-		ActionObject(objects, type, name),
-		mValue(value),
-		mLog("ActionOpacity") {}
+		ActionObject("OPACITY", objects, type, name),
+		mValue(value) {}
 
 	void perform() override
 	{
-		LOG(mLog, DEBUG) << "Perform";
+		getObject()->setOpacity(mValue);
 	}
 
 private:
 	t_ilm_float mValue;
-	XenBackend::Log mLog;
 };
 
 typedef std::shared_ptr<Action> ActionPtr;
@@ -229,10 +237,10 @@ public:
 	EventType getEventType() const { return mEvent; }
 	void doActions()
 	{
-		LOG(mLog, DEBUG) << "Do actions: " << mActions.size();
-
 		for(auto action : mActions)
 		{
+			LOG(mLog, DEBUG) << "Do action: " << action->getName();
+
 			action->perform();
 		}
 	}
@@ -259,6 +267,19 @@ private:
 	std::string mName;
 };
 
+class EventUser : public Event
+{
+public:
+	EventUser(uint32_t id) :
+		Event(EventType::USER),
+		mID(id) {}
+	uint32_t getID() const { return mID; }
+
+private:
+	uint32_t mID;
+};
+
+
 typedef std::shared_ptr<Event> EventPtr;
 
 /*******************************************************************************
@@ -276,6 +297,8 @@ public:
 
 	void createSurface(t_ilm_surface id);
 	void deleteSurface(t_ilm_surface id);
+
+	void userEvent(uint32_t id);
 
 private:
 
@@ -312,6 +335,7 @@ private:
 	void init();
 	EventPtr createEventCreate(int eventIndex);
 	EventPtr createEventDestroy(int eventIndex);
+	EventPtr createEventUser(int eventIndex);
 	void createEventActions(int eventIndex, EventPtr event);
 	ActionPtr createActionSource(int eventIndex, int actionIndex);
 	ActionPtr createActionDestination(int eventIndex, int actionIndex);
@@ -324,9 +348,11 @@ private:
 
 	EventPtr getObjectEvent(EventType eventType, ObjectType objectType,
 							const std::string& name);
+	EventPtr getUserEvent(uint32_t id);
 
 	void onCreateSurface(const std::string& name);
 	void onDeleteSurface(const std::string& name);
+	void onUserEvent(uint32_t id);
 };
 
 #endif /* SRC_ACTIONMANAGER_HPP_ */

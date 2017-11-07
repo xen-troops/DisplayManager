@@ -21,6 +21,7 @@ using std::vector;
 DisplayManager::DisplayManager(ConfigPtr config) :
 	mConfig(config),
 	mActions(mObjects, config),
+	mServer(mActions),
 	mLog("DisplayManager")
 {
 	LOG(mLog, DEBUG) << "Create";

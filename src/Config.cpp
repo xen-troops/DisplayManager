@@ -110,7 +110,7 @@ void Config::getLayerConfig(int index, LayerConfig& config)
 		config.visibility = 1;
 		config.opacity = 1.0;
 
-		setting.lookupValue("visible", config.visibility);
+		setting.lookupValue("visibility", config.visibility);
 		setting.lookupValue("opacity", config.opacity);
 		setting.lookupValue("order", config.order);
 
@@ -157,7 +157,7 @@ void Config::getSurfaceConfig(int index, SurfaceConfig& config)
 		config.visibility = 1;
 		config.opacity = 1.0;
 
-		setting.lookupValue("visible", config.visibility);
+		setting.lookupValue("visibility", config.visibility);
 		setting.lookupValue("opacity", config.opacity);
 		setting.lookupValue("order", config.order);
 
@@ -236,6 +236,25 @@ void Config::getEventDestroyConfig(int index, EventDestroyConfig& config)
 
 		LOG(mLog, DEBUG) << sectionName << "[" << index << "] object: "
 						 << config.object << ", name: " << config.name;
+	}
+	catch(const SettingException& e)
+	{
+		throw ConfigException("Config: error reading " + sectionName);
+	}
+}
+
+void Config::getEventUserConfig(int index, EventUserConfig& config)
+{
+	string sectionName = "events";
+
+	try
+	{
+		Setting& setting = mConfig.lookup(sectionName)[index];
+
+		config.id = setting.lookup("id");
+
+		LOG(mLog, DEBUG) << sectionName << "[" << index << "] id: "
+						 << config.id;
 	}
 	catch(const SettingException& e)
 	{

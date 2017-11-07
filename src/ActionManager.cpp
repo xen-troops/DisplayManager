@@ -11,6 +11,7 @@
 
 #include "Exception.hpp"
 
+using std::dynamic_pointer_cast;
 using std::string;
 using std::to_string;
 using std::toupper;
@@ -85,6 +86,8 @@ void ActionManager::createSurface(t_ilm_surface id)
 	}
 
 	LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
+
+	mObjects.update();
 }
 
 void ActionManager::deleteSurface(t_ilm_surface id)
@@ -108,8 +111,16 @@ void ActionManager::deleteSurface(t_ilm_surface id)
 	{
 		LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
 	}
+
+	mObjects.update();
 }
 
+void ActionManager::userEvent(uint32_t id)
+{
+	onUserEvent(id);
+
+	mObjects.update();
+}
 /*******************************************************************************
  * Private
  ******************************************************************************/
@@ -117,7 +128,8 @@ void ActionManager::deleteSurface(t_ilm_surface id)
 const vector<ActionManager::EventsTable> ActionManager::sEventsTable =
 {
 	{ EventType::CREATE,  "CREATE" },
-	{ EventType::DESTROY, "DESTROY"}
+	{ EventType::DESTROY, "DESTROY"},
+	{ EventType::USER,    "USER"   }
 };
 
 const vector<ActionManager::ObjectsTable> ActionManager::sObjectsTable =
@@ -156,9 +168,17 @@ void ActionManager::init()
 
 				break;
 			}
+
 			case EventType::DESTROY:
 			{
 				event = createEventDestroy(i);
+
+				break;
+			}
+
+			case EventType::USER:
+			{
+				event = createEventUser(i);
 
 				break;
 			}
@@ -207,6 +227,17 @@ EventPtr ActionManager::createEventDestroy(int eventIndex)
 
 	return EventPtr(new EventObject(EventType::DESTROY, objectType,
 									destroyConfig.name));
+}
+
+EventPtr ActionManager::createEventUser(int eventIndex)
+{
+	EventUserConfig userConfig;
+
+	mConfig->getEventUserConfig(eventIndex, userConfig);
+
+	LOG(mLog, DEBUG) << "event user, id: " << userConfig.id;
+
+	return EventPtr(new EventUser(userConfig.id));
 }
 
 void ActionManager::createEventActions(int eventIndex, EventPtr event)
@@ -414,10 +445,28 @@ EventPtr ActionManager::getObjectEvent(EventType eventType,
 	{
 		if (event->getEventType() == eventType)
 		{
-			auto eventObject = dynamic_cast<EventObject*>(event.get());
+			auto eventObject = dynamic_pointer_cast<EventObject>(event);
 
 			if (eventObject->getObjectType() == objectType &&
 				eventObject->getName() == name)
+			{
+				return event;
+			}
+		}
+	}
+
+	return EventPtr();
+}
+
+EventPtr ActionManager::getUserEvent(uint32_t id)
+{
+	for(auto event : mEvents)
+	{
+		if (event->getEventType() == EventType::USER)
+		{
+			auto eventObject = dynamic_pointer_cast<EventUser>(event);
+
+			if (eventObject->getID() == id)
 			{
 				return event;
 			}
@@ -451,3 +500,14 @@ void ActionManager::onDeleteSurface(const std::string& name)
 	}
 }
 
+void ActionManager::onUserEvent(uint32_t id)
+{
+	auto event = getUserEvent(id);
+
+	if (event)
+	{
+		LOG(mLog, DEBUG) << "onUserEvent, id: " << id;
+
+		event->doActions();
+	}
+}

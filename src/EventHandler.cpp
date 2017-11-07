@@ -95,8 +95,6 @@ void EventHandler::objectNotification(ilmObjectType object, t_ilm_uint id,
 			{
 				mActions.deleteSurface(id);
 			}
-
-			mObjects.update();
 		}
 
 		if (object == ILM_LAYER)
