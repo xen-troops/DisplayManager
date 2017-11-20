@@ -20,10 +20,6 @@ pkg_check_modules(DBUS1 REQUIRED dbus-1)
 
 pkg_check_modules(DBUS_CPP REQUIRED dbus-cpp)
 
-message(STATUS "ILM_CTRL_LIBRARIES          = ${ILM_CTRL_LIBRARIES}")
-message(STATUS "ILM_COMMON_LIBRARIES        = ${ILM_COMMON_LIBRARIES}")
-
-
 ################################################################################
 # CFLAGS
 ################################################################################
