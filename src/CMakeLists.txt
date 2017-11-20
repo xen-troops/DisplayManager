@@ -5,29 +5,24 @@
 include(FindPkgConfig)
 
 pkg_check_modules(CONFIG REQUIRED libconfig++)
-if (!CONFIG_FOUND)
-	message(FATAL_ERROR "No libconfig++ found")
+
+pkg_check_modules(ILM_CTRL ilmControl)
+if(NOT ILM_CTRL_FOUND)
+	set(ILM_CTRL_LIBRARIES "ilmControl;ilmCommon")
 endif()
 
-pkg_check_modules(ILM_CTRL REQUIRED ilmControl)
-if(!ILM_CTRL_FOUND)
-	message(FATAL_ERROR "No ilmControl found")
-endif()
-
-pkg_check_modules(ILM_COMMON REQUIRED ilmCommon)
-if(!ILM_COMMON_FOUND)
-	message(FATAL_ERROR "No ilmCommon found")
+pkg_check_modules(ILM_COMMON ilmCommon)
+if(NOT ILM_COMMON_FOUND)
+	set(ILM_COMMON_LIBRARIES ilmCommon)
 endif()
 
 pkg_check_modules(DBUS1 REQUIRED dbus-1)
-if(!DBUS1_FOUND)
-	message(FATAL_ERROR "No dbus-1 found")
-endif()
 
 pkg_check_modules(DBUS_CPP REQUIRED dbus-cpp)
-if(!DBUS_CPP_FOUND)
-	message(FATAL_ERROR "No dbus-cpp found")
-endif()
+
+message(STATUS "ILM_CTRL_LIBRARIES          = ${ILM_CTRL_LIBRARIES}")
+message(STATUS "ILM_COMMON_LIBRARIES        = ${ILM_COMMON_LIBRARIES}")
+
 
 ################################################################################
 # CFLAGS

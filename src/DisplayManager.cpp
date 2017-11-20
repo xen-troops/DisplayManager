@@ -33,7 +33,6 @@ DisplayManager::DisplayManager(ConfigPtr config) :
 		throw DmException("Can't initialize ilm", ret);
 	}
 
-
 	showDisplaysInfo();
 	createDisplays();
 	createLayers();
