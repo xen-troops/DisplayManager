@@ -81,7 +81,9 @@ void DisplayManager::showDisplaysInfo()
 			}
 
 			LOG(mLog, DEBUG) << "Display id: " << screenIDs[i]
+/* TODO: not present in version 1.11
 							 << ", connector: " << props.connectorName
+*/
 							 << ", width: " << props.screenWidth
 							 << ", height: " << props.screenHeight;
 		}

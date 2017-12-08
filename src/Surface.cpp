@@ -25,6 +25,7 @@ Surface::Surface(const string& name, t_ilm_surface id) :
 {
 	getProperties();
 
+/* TODO: not present in version 1.11
 	auto ret = ilm_surfaceSetType(id, ILM_SURFACETYPE_DESKTOP);
 
 	if (ret != ILM_SUCCESS)
@@ -32,6 +33,7 @@ Surface::Surface(const string& name, t_ilm_surface id) :
 		throw DmException("Can't set surface type: " +
 						  to_string(mID), ret);
 	}
+*/
 }
 
 Surface::~Surface()
