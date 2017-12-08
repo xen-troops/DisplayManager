@@ -20,6 +20,8 @@ pkg_check_modules(DBUS1 REQUIRED dbus-1)
 
 pkg_check_modules(DBUS_CPP REQUIRED dbus-cpp)
 
+pkg_check_modules(PROPERTIES_CPP REQUIRED properties-cpp)
+
 ################################################################################
 # CFLAGS
 ################################################################################
