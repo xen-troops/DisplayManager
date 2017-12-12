@@ -163,6 +163,8 @@ void ObjectManager::deleteSurfaceByName(const string& name)
 
 void ObjectManager::update()
 {
+	LOG(mLog, DEBUG) << "Update";
+
 	IlmObject::updateAll();
 }
 
