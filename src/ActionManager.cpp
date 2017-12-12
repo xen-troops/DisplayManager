@@ -81,13 +81,13 @@ void ActionManager::createSurface(t_ilm_surface id)
 
 			onCreateSurface(surface->getName());
 
+			mObjects.update();
+
 			return;
 		}
 	}
 
 	LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
-
-	mObjects.update();
 }
 
 void ActionManager::deleteSurface(t_ilm_surface id)
@@ -106,13 +106,14 @@ void ActionManager::deleteSurface(t_ilm_surface id)
 		onDeleteSurface(surface->getName());
 
 		mObjects.deleteSurfaceByName(surface->getName());
+
+		mObjects.update();
 	}
 	else
 	{
 		LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
 	}
 
-	mObjects.update();
 }
 
 void ActionManager::userEvent(uint32_t id)
