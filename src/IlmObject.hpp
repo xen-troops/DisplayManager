@@ -25,14 +25,14 @@ struct IlmRectangle
 
 	bool operator ==(const IlmRectangle& rect)
 	{
-		return rect.x == x && rect.y == rect.y &&
-			   width == rect.width && height == rect.height;
+		return rect.x == x && rect.y == y &&
+			   rect.width == width && rect.height == height;
 	}
 
 	bool operator !=(const IlmRectangle& rect)
 	{
-		return rect.x != x || rect.y != rect.y ||
-			   width != rect.width || height != rect.height;
+		return rect.x != x || rect.y != y ||
+			   rect.width != width || rect.height != height;
 	}
 };
 
