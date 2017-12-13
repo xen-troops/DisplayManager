@@ -36,6 +36,7 @@ public:
 	SurfacePtr getSurfaceByID(t_ilm_surface id) const;
 	void deleteSurfaceByName(const std::string& name);
 
+	void addToUpdateList(IlmObjectPtr object);
 	void update();
 
 private:
@@ -44,6 +45,8 @@ private:
 	std::unordered_map<std::string, DisplayPtr> mDisplays;
 	std::unordered_map<std::string, LayerPtr> mLayers;
 	std::unordered_map<std::string, SurfacePtr> mSurfaces;
+
+	std::list<IlmObjectPtr> mUpdateList;
 
 	template<class T>
 	T getObjectByName(const std::string& name,

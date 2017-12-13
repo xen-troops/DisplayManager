@@ -17,7 +17,8 @@
 class Display : public IlmObject
 {
 public:
-	explicit Display(const std::string& name, t_ilm_display id);
+	explicit Display(ObjectManager& manager, const std::string& name,
+					 t_ilm_display id);
 	~Display();
 
 	void setVisibility(t_ilm_bool visibility) override;

@@ -8,10 +8,9 @@
 #include <algorithm>
 #include <vector>
 
-#include <ilm/ilm_control.h>
-
 #include "Exception.hpp"
 #include "IlmObject.hpp"
+#include "ObjectManager.hpp"
 
 using std::find;
 using std::find_if;
@@ -24,7 +23,9 @@ using std::vector;
  * IlmObject
  ******************************************************************************/
 
-IlmObject::IlmObject(const string& type, const string& name, t_ilm_uint id) :
+IlmObject::IlmObject(ObjectManager& manager, const string& type,
+					 const string& name, t_ilm_uint id) :
+	mManager(manager),
 	mName(name),
 	mID(id),
 	mOrder(0),
@@ -40,7 +41,7 @@ IlmObject::~IlmObject()
 	if (mParent)
 	{
 		mParent->removeChild(mID);
-		addToUpdateList(mParent);
+		mManager.addToUpdateList(mParent);
 	}
 
 	mParent.reset();
@@ -59,7 +60,7 @@ void IlmObject::setOrder(int order)
 		mParent->removeChildFromList(mID);
 		mParent->addChildToList(mID, order);
 
-		addToUpdateList(mParent);
+		mManager.addToUpdateList(mParent);
 	}
 
 	mOrder = order;
@@ -80,7 +81,7 @@ void IlmObject::setParent(IlmObjectPtr parent)
 	{
 		mParent->removeChild(mID);
 
-		addToUpdateList(mParent);
+		mManager.addToUpdateList(mParent);
 	}
 
 	mParent = parent;
@@ -89,7 +90,7 @@ void IlmObject::setParent(IlmObjectPtr parent)
 	{
 		mParent->addChild(mID, mOrder);
 
-		addToUpdateList(mParent);
+		mManager.addToUpdateList(mParent);
 	}
 }
 
@@ -107,32 +108,9 @@ void IlmObject::update()
 	onUpdate(ids);
 }
 
-void IlmObject::updateAll()
-{
-	while(sUpdateList.size())
-	{
-		sUpdateList.front()->update();
-		sUpdateList.pop_front();
-	}
-
-	ilm_commitChanges();
-}
-
 /*******************************************************************************
  * Private
  ******************************************************************************/
-
-list<IlmObjectPtr> IlmObject::sUpdateList;
-
-void IlmObject::addToUpdateList(IlmObjectPtr object)
-{
-	auto it = find(sUpdateList.begin(), sUpdateList.end(), object);
-
-	if (it == sUpdateList.end())
-	{
-		sUpdateList.push_back(object);
-	}
-}
 
 void IlmObject::addChild(t_ilm_uint id, int order)
 {

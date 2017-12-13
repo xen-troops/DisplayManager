@@ -10,7 +10,6 @@
 #include <ilm/ilm_control.h>
 
 #include "Exception.hpp"
-
 #include "ObjectManager.hpp"
 
 using std::string;
@@ -20,8 +19,8 @@ using std::to_string;
  * Surface
  ******************************************************************************/
 
-Surface::Surface(const string& name, t_ilm_surface id) :
-	IlmObject("Surface", name, id)
+Surface::Surface(ObjectManager& manager, const string& name, t_ilm_surface id) :
+	IlmObject(manager, "Surface", name, id)
 {
 	getProperties();
 
