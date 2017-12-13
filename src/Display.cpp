@@ -19,8 +19,8 @@ using std::to_string;
  * Display
  ******************************************************************************/
 
-Display::Display(const string& name, t_ilm_display id) :
-	IlmObject("Display", name, id)
+Display::Display(ObjectManager& manager, const string& name, t_ilm_display id) :
+	IlmObject(manager, "Display", name, id)
 {
 	auto ret = ilm_getScreenResolution(mID, &mWidth, &mHeight);
 

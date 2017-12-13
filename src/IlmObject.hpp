@@ -37,6 +37,7 @@ struct IlmRectangle
 };
 
 class IlmObject;
+class ObjectManager;
 
 typedef std::shared_ptr<IlmObject> IlmObjectPtr;
 
@@ -44,7 +45,8 @@ class IlmObject
 {
 public:
 
-	IlmObject(const std::string& type, const std::string& name, t_ilm_uint id);
+	IlmObject(ObjectManager& manager, const std::string& type,
+			  const std::string& name, t_ilm_uint id);
 	~IlmObject();
 
 	const std::string& getName() const { return mName; }
@@ -58,9 +60,9 @@ public:
 	void setOrder(int order);
 	void setParent(IlmObjectPtr parent);
 	void update();
-	static void updateAll();
 
 protected:
+	ObjectManager& mManager;
 	std::string mName;
 	t_ilm_uint mID;
 	IlmObjectPtr mParent;
@@ -75,9 +77,6 @@ private:
 	};
 
 	std::list<Child> mChildren;
-	static std::list<IlmObjectPtr> sUpdateList;
-
-	static void addToUpdateList(IlmObjectPtr object);
 
 	void addChild(t_ilm_uint id, int order);
 	void removeChild(t_ilm_uint id);

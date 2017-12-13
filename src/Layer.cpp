@@ -10,6 +10,7 @@
 #include <ilm/ilm_control.h>
 
 #include "Exception.hpp"
+#include "ObjectManager.hpp"
 #include "Utils.hpp"
 
 using std::string;
@@ -19,9 +20,9 @@ using std::to_string;
  * Layer
  ******************************************************************************/
 
-Layer::Layer(const string& name, t_ilm_layer id,
+Layer::Layer(ObjectManager& manager, const string& name, t_ilm_layer id,
 			 t_ilm_uint width, t_ilm_uint height) :
-	IlmObject("Layer", name, id)
+	IlmObject(manager, "Layer", name, id)
 {
 	auto requestedID = mID;
 

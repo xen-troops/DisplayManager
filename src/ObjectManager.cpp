@@ -7,6 +7,8 @@
 
 #include "ObjectManager.hpp"
 
+#include <ilm/ilm_control.h>
+
 #include "Exception.hpp"
 
 using std::pair;
@@ -50,7 +52,7 @@ DisplayPtr ObjectManager::createDisplay(const DisplayConfig& config)
 						  ILM_ERROR_RESOURCE_ALREADY_INUSE);
 	}
 
-	DisplayPtr display(new Display(config.name, config.id));
+	DisplayPtr display(new Display(*this, config.name, config.id));
 
 	mDisplays[config.name] = display;
 
@@ -78,7 +80,7 @@ LayerPtr ObjectManager::createLayer(const LayerConfig& config)
 						  ILM_ERROR_RESOURCE_ALREADY_INUSE);
 	}
 
-	LayerPtr layer(new Layer(config.name, config.id,
+	LayerPtr layer(new Layer(*this, config.name, config.id,
 							 config.width, config.height));
 
 	layer->setVisibility(config.visibility);
@@ -123,7 +125,7 @@ SurfacePtr ObjectManager::createSurface(const SurfaceConfig& config)
 						  ILM_ERROR_RESOURCE_ALREADY_INUSE);
 	}
 
-	SurfacePtr surface(new Surface(config.name, config.id));
+	SurfacePtr surface(new Surface(*this, config.name, config.id));
 
 	auto layer = getLayerByName(config.layer);
 
@@ -161,16 +163,33 @@ void ObjectManager::deleteSurfaceByName(const string& name)
 	mSurfaces.erase(name);
 }
 
+void ObjectManager::addToUpdateList(IlmObjectPtr object)
+{
+	auto it = find(mUpdateList.begin(), mUpdateList.end(), object);
+
+	if (it == mUpdateList.end())
+	{
+		mUpdateList.push_back(object);
+	}
+}
+
 void ObjectManager::update()
 {
-	LOG(mLog, DEBUG) << "Update";
+	while(mUpdateList.size())
+	{
+		mUpdateList.front()->update();
+		mUpdateList.pop_front();
+	}
 
-	IlmObject::updateAll();
+	LOG(mLog, DEBUG) << "Commit changes";
+
+	ilm_commitChanges();
 }
 
 /*******************************************************************************
  * Private
  ******************************************************************************/
+
 template<class T>
 T ObjectManager::getObjectByName(const string& name,
 								 const unordered_map<string, T>& map) const

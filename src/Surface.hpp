@@ -17,7 +17,7 @@
 class Surface : public IlmObject
 {
 public:
-	Surface(const std::string& name, t_ilm_surface id);
+	Surface(ObjectManager& manager, const std::string& name, t_ilm_surface id);
 	virtual ~Surface();
 
 	void setVisibility(t_ilm_bool visibility) override;

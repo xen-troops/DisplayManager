@@ -17,7 +17,7 @@
 class Layer : public IlmObject
 {
 public:
-	Layer(const std::string& name, t_ilm_layer id,
+	Layer(ObjectManager& manager, const std::string& name, t_ilm_layer id,
 		  t_ilm_uint width, t_ilm_uint height);
 	virtual ~Layer();
 

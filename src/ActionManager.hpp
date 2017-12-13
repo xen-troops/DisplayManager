@@ -8,7 +8,12 @@
 #ifndef SRC_ACTIONMANAGER_HPP_
 #define SRC_ACTIONMANAGER_HPP_
 
+#include <condition_variable>
+#include <functional>
+#include <list>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 #include <xen/be/Log.hpp>
@@ -326,13 +331,32 @@ private:
 
 	static const std::vector<ActionsTable> sActionsTable;
 
+	typedef std::function<void()> AsyncCall;
+
 	ObjectManager& mObjects;
 	ConfigPtr mConfig;
+	bool mTerminate;
 	XenBackend::Log mLog;
 
 	std::vector<EventPtr> mEvents;
 
+	std::mutex mMutex;
+	std::condition_variable mCondVar;
+	std::thread mThread;
+
+	std::list<AsyncCall> mAsyncCalls;
+
 	void init();
+
+	void asyncCall(AsyncCall f);
+	void run();
+
+	void asyncCreateLayer(t_ilm_layer id);
+	void asyncDeleteLayer(t_ilm_layer id);
+	void asyncCreateSurface(t_ilm_surface id);
+	void asyncDeleteSurface(t_ilm_surface id);
+	void asyncUserEvent(uint32_t id);
+
 	EventPtr createEventCreate(int eventIndex);
 	EventPtr createEventDestroy(int eventIndex);
 	EventPtr createEventUser(int eventIndex);

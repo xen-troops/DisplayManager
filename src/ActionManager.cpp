@@ -11,12 +11,17 @@
 
 #include "Exception.hpp"
 
+using std::bind;
 using std::dynamic_pointer_cast;
+using std::lock_guard;
+using std::mutex;
 using std::string;
 using std::to_string;
 using std::toupper;
 using std::transform;
 using std::vector;
+using std::thread;
+using std::unique_lock;
 
 /*******************************************************************************
  * ActionManager
@@ -25,15 +30,31 @@ using std::vector;
 ActionManager::ActionManager(ObjectManager& objects, ConfigPtr config) :
 	mObjects(objects),
 	mConfig(config),
+	mTerminate(false),
 	mLog("ActionManager")
 {
 	LOG(mLog, DEBUG) << "Create";
 
 	init();
+
+	mThread = thread(&ActionManager::run, this);
 }
 
 ActionManager::~ActionManager()
 {
+	{
+		unique_lock<mutex> lock(mMutex);
+
+		mTerminate = true;
+
+		mCondVar.notify_all();
+	}
+
+	if (mThread.joinable())
+	{
+		mThread.join();
+	}
+
 	LOG(mLog, DEBUG) << "Delete";
 }
 
@@ -43,85 +64,29 @@ ActionManager::~ActionManager()
 
 void ActionManager::createLayer(t_ilm_layer id)
 {
-	if (mObjects.getLayerByID(id))
-	{
-		LOG(mLog, DEBUG) << "Create layer, id: " << id;
-
-		return;
-	}
-
-	LOG(mLog, WARNING) << "Unhandled layer " << id << " created";
+	asyncCall(bind(&ActionManager::asyncCreateLayer, this, id));
 }
 
 void ActionManager::deleteLayer(t_ilm_layer id)
 {
-	if (mObjects.getLayerByID(id))
-	{
-		LOG(mLog, DEBUG) << "Delete layer, id: " << id;
-
-		return;
-	}
-
-	LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
+	asyncCall(bind(&ActionManager::asyncDeleteLayer, this, id));
 }
 
 void ActionManager::createSurface(t_ilm_surface id)
 {
-	for(int i = 0; i < mConfig->getSurfacesCount(); i++)
-	{
-		SurfaceConfig config;
-
-		mConfig->getSurfaceConfig(i, config);
-
-		if (id == config.id)
-		{
-			LOG(mLog, DEBUG) << "Create surface, id: " << id;
-
-			auto surface = mObjects.createSurface(config);
-
-			onCreateSurface(surface->getName());
-
-			mObjects.update();
-
-			return;
-		}
-	}
-
-	LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
+	asyncCall(bind(&ActionManager::asyncCreateSurface, this, id));
 }
 
 void ActionManager::deleteSurface(t_ilm_surface id)
 {
-	if (mObjects.getSurfaceByID(id))
-	{
-		LOG(mLog, DEBUG) << "Delete surface, id: " << id;
-
-		auto surface = mObjects.getSurfaceByID(id);
-
-		if (!surface)
-		{
-			throw DmException("Can't find surface " + to_string(id));
-		}
-
-		onDeleteSurface(surface->getName());
-
-		mObjects.deleteSurfaceByName(surface->getName());
-
-		mObjects.update();
-	}
-	else
-	{
-		LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
-	}
-
+	asyncCall(bind(&ActionManager::asyncDeleteSurface, this, id));
 }
 
 void ActionManager::userEvent(uint32_t id)
 {
-	onUserEvent(id);
-
-	mObjects.update();
+	asyncCall(bind(&ActionManager::asyncUserEvent, this, id));
 }
+
 /*******************************************************************************
  * Private
  ******************************************************************************/
@@ -196,6 +161,118 @@ void ActionManager::init()
 
 		mEvents.push_back(event);
 	}
+}
+
+void ActionManager::asyncCall(AsyncCall f)
+{
+	unique_lock<mutex> lock(mMutex);
+
+	mAsyncCalls.push_back(f);
+
+	mCondVar.notify_one();
+}
+
+void ActionManager::run()
+{
+	unique_lock<mutex> lock(mMutex);
+
+	while(!mTerminate)
+	{
+		mCondVar.wait(lock, [this] { return mTerminate ||
+									 !mAsyncCalls.empty(); });
+
+		while(!mAsyncCalls.empty())
+		{
+			auto asyncCall = mAsyncCalls.front();
+
+			lock.unlock();
+
+			asyncCall();
+
+			lock.lock();
+
+			mAsyncCalls.pop_front();
+		}
+	}
+}
+
+void ActionManager::asyncCreateLayer(t_ilm_layer id)
+{
+	if (mObjects.getLayerByID(id))
+	{
+		LOG(mLog, DEBUG) << "Create layer, id: " << id;
+
+		return;
+	}
+
+	LOG(mLog, WARNING) << "Unhandled layer " << id << " created";
+}
+
+void ActionManager::asyncDeleteLayer(t_ilm_layer id)
+{
+	if (mObjects.getLayerByID(id))
+	{
+		LOG(mLog, DEBUG) << "Delete layer, id: " << id;
+
+		return;
+	}
+
+	LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
+}
+
+void ActionManager::asyncCreateSurface(t_ilm_surface id)
+{
+	for(int i = 0; i < mConfig->getSurfacesCount(); i++)
+	{
+		SurfaceConfig config;
+
+		mConfig->getSurfaceConfig(i, config);
+
+		if (id == config.id)
+		{
+			LOG(mLog, DEBUG) << "Create surface, id: " << id;
+
+			auto surface = mObjects.createSurface(config);
+
+			onCreateSurface(surface->getName());
+
+			mObjects.update();
+
+			return;
+		}
+	}
+
+	LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
+}
+
+void ActionManager::asyncDeleteSurface(t_ilm_surface id)
+{
+	auto surface = mObjects.getSurfaceByID(id);
+
+	if (surface)
+	{
+		LOG(mLog, DEBUG) << "Delete surface, id: " << id;
+
+		onDeleteSurface(surface->getName());
+
+		mObjects.deleteSurfaceByName(surface->getName());
+
+		surface.reset();
+
+		mObjects.update();
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
+	}
+
+}
+
+void ActionManager::asyncUserEvent(uint32_t id)
+{
+	onUserEvent(id);
+
+	mObjects.update();
 }
 
 EventPtr ActionManager::createEventCreate(int eventIndex)
