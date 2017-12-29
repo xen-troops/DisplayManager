@@ -30,7 +30,7 @@ struct userEvent
 {
 typedef Control Interface;
 static const std::string& name() { static const std::string s{"userEvent"}; return s; }
-static const std::chrono::milliseconds& default_timeout() { static const std::chrono::seconds s{10}; return s; }
+static const std::chrono::milliseconds& default_timeout() { static const std::chrono::milliseconds s{1000}; return s; }
 typedef std::uint32_t ArgumentType;
 typedef void ResultType;
 };
