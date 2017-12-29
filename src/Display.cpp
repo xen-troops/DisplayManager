@@ -7,13 +7,18 @@
 
 #include "Display.hpp"
 
+#include <algorithm>
+
 #include <ilm/ilm_control.h>
 
 #include "Exception.hpp"
 #include "Utils.hpp"
 
+using std::inserter;
+using std::set_difference;
 using std::string;
 using std::to_string;
+using std::vector;
 
 /*******************************************************************************
  * Display
@@ -75,13 +80,38 @@ void Display::onRemoveChild(t_ilm_uint id)
 	// do nothing
 }
 
-void Display::onUpdate(const std::vector<t_ilm_uint>& ids)
+void Display::onUpdate(const vector<t_ilm_uint>& ids)
 {
-	LOG(mLog, DEBUG) << "Set render order: " << Utils::idsToStr(ids);
+	ilmScreenProperties screenProperties;
 
-	auto ret = ilm_displaySetRenderOrder(mID,
-										 const_cast<t_ilm_layer*>(ids.data()),
-										 ids.size());
+	auto ret = ilm_getPropertiesOfScreen(mID, &screenProperties);
+
+	if (ret != ILM_SUCCESS)
+	{
+		throw DmException("Can't get display property " + to_string(mID), ret);
+	}
+
+	vector<t_ilm_uint> allIds(screenProperties.layerIds,
+							  screenProperties.layerIds +
+							  screenProperties.layerCount);
+
+	LOG(mLog, DEBUG) << "Current render order: " << Utils::idsToStr(allIds);
+
+	free(screenProperties.layerIds);
+
+	vector<t_ilm_uint> renderIds;
+
+	set_difference(allIds.begin(), allIds.end(),
+				   ids.begin(), ids.end(),
+				   inserter(renderIds, renderIds.begin()));
+
+	renderIds.insert(renderIds.end(), ids.begin(), ids.end());
+
+	LOG(mLog, DEBUG) << "Set render order: " << Utils::idsToStr(renderIds);
+
+	ret = ilm_displaySetRenderOrder(mID,
+									const_cast<t_ilm_layer*>(renderIds.data()),
+									renderIds.size());
 
 	if (ret != ILM_SUCCESS)
 	{
