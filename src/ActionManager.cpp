@@ -187,7 +187,14 @@ void ActionManager::run()
 
 			lock.unlock();
 
-			asyncCall();
+			try
+			{
+				asyncCall();
+			}
+			catch(const std::exception& e)
+			{
+				LOG(mLog, ERROR) << e.what();
+			}
 
 			lock.lock();
 
