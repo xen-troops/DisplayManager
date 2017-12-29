@@ -37,9 +37,9 @@ DisplayManager::DisplayManager(ConfigPtr config) :
 	createDisplays();
 	createLayers();
 
-	mEvents.reset(new EventHandler(mObjects, mActions));
-
 	mObjects.update();
+
+	mEvents.reset(new EventHandler(mObjects, mActions));
 }
 
 DisplayManager::~DisplayManager()
