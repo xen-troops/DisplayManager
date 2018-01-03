@@ -30,7 +30,7 @@ DBusServer::DBusServer(ActionManager& actions) :
 	mBus = make_shared<Bus>(WellKnownBus::session);
 	mBus->install_executor(asio::make_executor(mBus));
 
-	auto service = Service::add_service(mBus, "com.epam.DeviceManager");
+	auto service = Service::add_service(mBus, "com.epam.DisplayManager");
 
 	mThread = thread([this]() { mBus->run(); });
 
