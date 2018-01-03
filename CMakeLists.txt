@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(PROJECT_NAME "DisplayManager")
+set(PROJECT_NAME "display_manager")
 
 project(${PROJECT_NAME})
 
