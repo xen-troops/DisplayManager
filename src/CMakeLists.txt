@@ -8,7 +8,7 @@ pkg_check_modules(CONFIG REQUIRED libconfig++)
 
 pkg_check_modules(ILM_CTRL ilmControl)
 if(NOT ILM_CTRL_FOUND)
-	set(ILM_CTRL_LIBRARIES "ilmControl;ilmCommon")
+	set(ILM_CTRL_LIBRARIES ilmControl)
 endif()
 
 pkg_check_modules(ILM_COMMON ilmCommon)
@@ -75,4 +75,5 @@ target_link_libraries(${PROJECT_NAME}
 	${CONFIG_LIBRARIES}
 	${DBUS_CPP_LIBRARIES}
 	${ILM_CTRL_LIBRARIES}
+	${ILM_COMMON_LIBRARIES}
 )
