@@ -107,9 +107,11 @@ void Config::getLayerConfig(int index, LayerConfig& config)
 		config.width = setting.lookup("width");
 		config.height = setting.lookup("height");
 
+		config.create = true;
 		config.visibility = 1;
 		config.opacity = 1.0;
 
+		setting.lookupValue("create", config.create);
 		setting.lookupValue("visibility", config.visibility);
 		setting.lookupValue("opacity", config.opacity);
 		setting.lookupValue("order", config.order);

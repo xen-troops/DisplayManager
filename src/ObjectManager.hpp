@@ -30,6 +30,7 @@ public:
 	LayerPtr createLayer(const LayerConfig& config);
 	LayerPtr getLayerByName(const std::string& name) const;
 	LayerPtr getLayerByID(t_ilm_layer id) const;
+	void deleteLayerByName(const std::string &name);
 
 	SurfacePtr createSurface(const SurfaceConfig& config);
 	SurfacePtr getSurfaceByName(const std::string& name) const;
@@ -55,7 +56,5 @@ private:
 	T getObjectByID(S id,
 					const std::unordered_map<std::string, T>& map) const;
 };
-
-
 
 #endif /* SRC_OBJECTMANAGER_HPP_ */

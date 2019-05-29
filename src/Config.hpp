@@ -75,6 +75,7 @@ struct LayerConfig
 {
 	std::string name;
 	t_ilm_layer id;
+	bool create;
 	std::string display;
 	t_ilm_uint width;
 	t_ilm_uint height;

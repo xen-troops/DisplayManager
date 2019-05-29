@@ -27,11 +27,14 @@ private:
 	DBusServer mServer;
 	std::unique_ptr<EventHandler> mEvents;
 
+	std::vector<t_ilm_layer> mLayersId;
+
 	XenBackend::Log mLog;
 
 	void showDisplaysInfo();
 	void createDisplays();
 	void createLayers();
+	void createLayer(t_ilm_layer id, t_ilm_uint width, t_ilm_uint height);
 };
 
 #endif /* SRC_DISPLAYMANAGER_HPP_ */

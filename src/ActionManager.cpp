@@ -205,11 +205,24 @@ void ActionManager::run()
 
 void ActionManager::asyncCreateLayer(t_ilm_layer id)
 {
-	if (mObjects.getLayerByID(id))
+	for(int i = 0; i < mConfig->getLayersCount(); i++)
 	{
-		LOG(mLog, DEBUG) << "Create layer, id: " << id;
+		LayerConfig config;
 
-		return;
+		mConfig->getLayerConfig(i, config);
+
+		if (id == config.id)
+		{
+			LOG(mLog, DEBUG) << "Create layer, id: " << id;
+
+			auto layer = mObjects.createLayer(config);
+
+			onCreateLayer(layer->getName());
+
+			mObjects.update();
+
+			return;
+		}
 	}
 
 	LOG(mLog, WARNING) << "Unhandled layer " << id << " created";
@@ -217,14 +230,24 @@ void ActionManager::asyncCreateLayer(t_ilm_layer id)
 
 void ActionManager::asyncDeleteLayer(t_ilm_layer id)
 {
-	if (mObjects.getLayerByID(id))
+	auto layer = mObjects.getLayerByID(id);
+
+	if (layer)
 	{
 		LOG(mLog, DEBUG) << "Delete layer, id: " << id;
 
-		return;
-	}
+		onDeleteLayer(layer->getName());
 
-	LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
+		mObjects.deleteLayerByName(layer->getName());
+
+		layer.reset();
+
+		mObjects.update();
+	}
+	else
+	{
+		LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
+	}
 }
 
 void ActionManager::asyncCreateSurface(t_ilm_surface id)
@@ -272,7 +295,6 @@ void ActionManager::asyncDeleteSurface(t_ilm_surface id)
 	{
 		LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
 	}
-
 }
 
 void ActionManager::asyncUserEvent(uint32_t id)
@@ -559,6 +581,30 @@ EventPtr ActionManager::getUserEvent(uint32_t id)
 	}
 
 	return EventPtr();
+}
+
+void ActionManager::onCreateLayer(const std::string& name)
+{
+	auto event = getObjectEvent(EventType::CREATE, ObjectType::LAYER, name);
+
+	if (event)
+	{
+		LOG(mLog, DEBUG) << "onCreateLayer, name: " << name;
+
+		event->doActions();
+	}
+}
+
+void ActionManager::onDeleteLayer(const std::string& name)
+{
+	auto event = getObjectEvent(EventType::DESTROY, ObjectType::LAYER, name);
+
+	if (event)
+	{
+		LOG(mLog, DEBUG) << "onDeleteLayer, name: " << name;
+
+		event->doActions();
+	}
 }
 
 void ActionManager::onCreateSurface(const std::string& name)

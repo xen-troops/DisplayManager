@@ -17,8 +17,7 @@
 class Layer : public IlmObject
 {
 public:
-	Layer(ObjectManager& manager, const std::string& name, t_ilm_layer id,
-		  t_ilm_uint width, t_ilm_uint height);
+	Layer(ObjectManager& manager, const std::string& name, t_ilm_layer id);
 	virtual ~Layer();
 
 	void setVisibility(t_ilm_bool visibility) override;

@@ -80,8 +80,7 @@ LayerPtr ObjectManager::createLayer(const LayerConfig& config)
 						  ILM_ERROR_RESOURCE_ALREADY_INUSE);
 	}
 
-	LayerPtr layer(new Layer(*this, config.name, config.id,
-							 config.width, config.height));
+	LayerPtr layer(new Layer(*this, config.name, config.id));
 
 	layer->setVisibility(config.visibility);
 	layer->setOpacity(config.opacity);
@@ -112,6 +111,11 @@ LayerPtr ObjectManager::getLayerByName(const string& name) const
 LayerPtr ObjectManager::getLayerByID(t_ilm_layer id) const
 {
 	return getObjectByID<LayerPtr, t_ilm_layer>(id, mLayers);
+}
+
+void ObjectManager::deleteLayerByName(const string& name)
+{
+	mLayers.erase(name);
 }
 
 SurfacePtr ObjectManager::createSurface(const SurfaceConfig& config)
