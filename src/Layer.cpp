@@ -20,47 +20,14 @@ using std::to_string;
  * Layer
  ******************************************************************************/
 
-Layer::Layer(ObjectManager& manager, const string& name, t_ilm_layer id,
-			 t_ilm_uint width, t_ilm_uint height) :
+Layer::Layer(ObjectManager& manager, const string& name, t_ilm_layer id) :
 	IlmObject(manager, "Layer", name, id)
 {
-	auto requestedID = mID;
-
-	auto ret = ilm_layerCreateWithDimension(&mID, width, height);
-
-	if (ret != ILM_SUCCESS)
-	{
-		LOG(mLog, WARNING) << "Create layer failed. Trying to remove.";
-
-		ret = ilm_layerRemove(mID);
-
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Failed to remove layer: " + to_string(mID), ret);
-		}
-
-		ret = ilm_layerCreateWithDimension(&mID, width, height);
-
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Can't create layer: " + to_string(mID), ret);
-		}
-	}
-
-	if (requestedID != mID)
-	{
-		ilm_layerRemove(mID);
-
-		throw DmException("Can't set requested layer ID: " +
-						  to_string(requestedID), ret);
-	}
-
 	getProperties();
 }
 
 Layer::~Layer()
 {
-	ilm_layerRemove(mID);
 }
 
 /*******************************************************************************

@@ -33,18 +33,21 @@ DisplayManager::DisplayManager(ConfigPtr config) :
 		throw DmException("Can't initialize ilm", ret);
 	}
 
+	mEvents.reset(new EventHandler(mObjects, mActions));
+
 	showDisplaysInfo();
 	createDisplays();
 	createLayers();
-
-	mObjects.update();
-
-	mEvents.reset(new EventHandler(mObjects, mActions));
 }
 
 DisplayManager::~DisplayManager()
 {
 	LOG(mLog, DEBUG) << "Delete";
+
+	for(auto id : mLayersId)
+	{
+		ilm_layerRemove(id);
+	}
 }
 
 /*******************************************************************************
@@ -81,9 +84,7 @@ void DisplayManager::showDisplaysInfo()
 			}
 
 			LOG(mLog, DEBUG) << "Display id: " << screenIDs[i]
-/* TODO: not present in version 1.11
 							 << ", connector: " << props.connectorName
-*/
 							 << ", width: " << props.screenWidth
 							 << ", height: " << props.screenHeight;
 		}
@@ -112,14 +113,51 @@ void DisplayManager::createDisplays()
 
 void DisplayManager::createLayers()
 {
-	vector<IlmObjectPtr> updateObjects;
-
 	for(int i = 0; i < mConfig->getLayersCount(); i++)
 	{
 		LayerConfig config;
 
 		mConfig->getLayerConfig(i, config);
 
-		mObjects.createLayer(config);
+		if (config.create)
+		{
+			createLayer(config.id, config.width, config.height);
+		}
 	}
+}
+
+void DisplayManager::createLayer(t_ilm_layer id, t_ilm_uint width, t_ilm_uint height)
+{
+	auto requestedID = id;
+
+	auto ret = ilm_layerCreateWithDimension(&id, width, height);
+
+	if (ret != ILM_SUCCESS)
+	{
+		LOG(mLog, WARNING) << "Create layer failed. Trying to remove.";
+
+		ret = ilm_layerRemove(requestedID);
+
+		if (ret != ILM_SUCCESS)
+		{
+			throw DmException("Failed to remove layer: " + to_string(requestedID), ret);
+		}
+
+		ret = ilm_layerCreateWithDimension(&id, width, height);
+
+		if (ret != ILM_SUCCESS)
+		{
+			throw DmException("Can't create layer: " + to_string(requestedID), ret);
+		}
+	}
+
+	if (requestedID != id)
+	{
+		ilm_layerRemove(id);
+
+		throw DmException("Can't set requested layer ID: " +
+						to_string(requestedID), ret);
+	}
+
+	mLayersId.push_back(id);
 }
