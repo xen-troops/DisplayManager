@@ -1,6 +1,6 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
-<node name="/com/epam/DisplayManager">
+<node cppname="DBusControl" cppinclude="&quot;DBusControl.h&quot;" dest="com.epam.DisplayManager" path="/com/epam/DisplayManager" >
 	<interface name="com.epam.DisplayManager.Control">
 		<method name="userEvent">
 			<arg name="event" type="u" direction="in" />
