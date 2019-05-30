@@ -8,31 +8,27 @@
 #ifndef SRC_DBUSSERVER_HPP_
 #define SRC_DBUSSERVER_HPP_
 
-#include <thread>
-
-#include <core/dbus/dbus.h>
-#include <core/dbus/message.h>
-
 #include <xen/be/Log.hpp>
 
-#include "ActionManager.hpp"
+#include "DBusControlAdapter.hpp"
 
-class DBusServer
+class ActionManager;
+
+class DBusServer : public DBusControlAdaptee
 {
 public:
 	DBusServer(ActionManager& actions);
 	~DBusServer();
 
 private:
-	core::dbus::Bus::Ptr mBus;
-	core::dbus::Object::Ptr mObject;
-	std::thread mThread;
 	ActionManager& mActions;
+	DBus::Dispatcher::pointer mDispatcher;
+	DBus::Connection::pointer mConnection;
+	DBusControlAdapter::pointer mAdapter;
 
 	XenBackend::Log mLog;
 
-	void introspectHandler(const core::dbus::Message::Ptr& msg);
-	void userEventHandler(const core::dbus::Message::Ptr& msg);
+	void userEvent(uint32_t event) override;
 };
 
 #endif /* SRC_DBUSSERVER_HPP_ */

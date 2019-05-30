@@ -7,79 +7,52 @@
 
 #include "DBusServer.hpp"
 
-#include <core/dbus/asio/executor.h>
+#include "ActionManager.hpp"
 
-#include "DBusItfControl.hpp"
-#include "DBusItfIntrospectable.hpp"
 
-using std::bind;
+using DBus::BUS_SESSION;
+using DBus::init;
+using DBus::Dispatcher;
+
 using std::exception;
-using std::make_shared;
-using std::thread;
-using namespace std::placeholders;
-
-using namespace core::dbus;
-
-using namespace com::epam;
-using namespace org::freedesktop;
+using std::runtime_error;
 
 DBusServer::DBusServer(ActionManager& actions) :
 	mActions(actions),
 	mLog("DBusServer")
 {
-	mBus = make_shared<Bus>(WellKnownBus::session);
-	mBus->install_executor(asio::make_executor(mBus));
-
-	auto service = Service::add_service(mBus, "com.epam.DisplayManager");
-
-	mThread = thread([this]() { mBus->run(); });
-
-	mObject = service->add_object_for_path(
-			types::ObjectPath(DisplayManager::Control::default_path()));
-
-	mObject->install_method_handler<DBus::Introspectable::Introspect>(
-			bind(&DBusServer::introspectHandler, this, _1));
-
-	mObject->install_method_handler<DisplayManager::Control::userEvent>(
-			bind(&DBusServer::userEventHandler, this, _1));
-
 	LOG(mLog, DEBUG) << "Create";
+
+	init();
+	
+	mDispatcher = Dispatcher::create();
+	mConnection = mDispatcher->create_connection(BUS_SESSION);
+
+	if (mConnection->request_name("com.epam.DisplayManager",
+								  DBUS_NAME_FLAG_REPLACE_EXISTING)
+		!= DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) 
+	{
+		throw(runtime_error("Can't request DBus name"));
+	}
+
+	DBusControlAdapter::create(this);
+
+	mAdapter = DBusControlAdapter::create(this);
+	mConnection->register_object(mAdapter);
 }
 
 DBusServer::~DBusServer()
 {
-	mBus->stop();
-
-	if (mThread.joinable())
-	{
-		mThread.join();
-	}
-
 	LOG(mLog, DEBUG) << "Delete";
 }
 
-void DBusServer::introspectHandler(const core::dbus::Message::Ptr& msg)
-{
-	LOG(mLog, DEBUG) << "Introspect";
-
-    auto reply = Message::make_method_return(msg);
-
-    auto str = DisplayManager::Control::introspect();
-
-    reply->writer().push_stringn(str.c_str(), str.length());
-
-    mBus->send(reply);
-}
-
-void DBusServer::userEventHandler(const Message::Ptr& msg)
+void DBusServer::userEvent(uint32_t event)
 {
 	try
 	{
-		auto id = msg->reader().pop_uint32();
+		LOG(mLog, DEBUG) << "User event: " << event;
 
-		LOG(mLog, DEBUG) << "User event: " << id;
-
-		mActions.userEvent(id);
+		mActions.userEvent(event);
 	}
 	catch(const exception& e)
 	{

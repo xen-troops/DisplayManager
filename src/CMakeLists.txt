@@ -16,19 +16,11 @@ if(NOT ILM_COMMON_FOUND)
 	set(ILM_COMMON_LIBRARIES ilmCommon)
 endif()
 
-pkg_check_modules(DBUS1 REQUIRED dbus-1)
-
-pkg_check_modules(DBUS_CPP REQUIRED dbus-cpp)
-
-pkg_check_modules(PROPERTIES_CPP REQUIRED properties-cpp)
+pkg_check_modules(DBUS_CXX REQUIRED dbus-cxx-1.0)
 
 ################################################################################
 # CFLAGS
 ################################################################################
-
-string(REPLACE ";" " " DBUS1_CFLAGS_STR "${DBUS1_CFLAGS}")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DBUS1_CFLAGS_STR}")
 
 ################################################################################
 # Includes
@@ -36,8 +28,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DBUS1_CFLAGS_STR}")
 
 include_directories(
 	.
-	${CONFIG_INCLUDE_PATH}
+	${CONFIG_INCLUDE_DIRS}
+	${DBUS_CXX_INCLUDE_DIRS}
+	${ILM_CTRL_INCLUDE_DIRS}
+	${ILM_COMMON_INCLUDE_DIRS}
 )
+
+message(STATUS "DBUS_CXX_INCLUDE_DIRS              = ${DBUS_CXX_INCLUDE_DIRS}")
 
 ################################################################################
 # Sources
@@ -47,6 +44,7 @@ set(SOURCES
 	main.cpp
 	ActionManager.cpp
 	Config.cpp
+	DBusControlAdapter.cpp
 	DBusServer.cpp
 	Display.cpp
 	DisplayManager.cpp
@@ -73,7 +71,7 @@ install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 target_link_libraries(${PROJECT_NAME}
 	pthread
 	${CONFIG_LIBRARIES}
-	${DBUS_CPP_LIBRARIES}
+	${DBUS_CXX_LIBRARIES}
 	${ILM_CTRL_LIBRARIES}
 	${ILM_COMMON_LIBRARIES}
 )
