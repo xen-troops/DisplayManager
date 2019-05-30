@@ -246,7 +246,14 @@ public:
 		{
 			LOG(mLog, DEBUG) << "Do action: " << action->getName();
 
-			action->perform();
+			try
+			{
+				action->perform();
+			}
+			catch(const std::exception& e)
+			{
+				LOG(mLog, ERROR) << e.what();
+			}
 		}
 	}
 
