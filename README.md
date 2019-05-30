@@ -2,7 +2,7 @@
 
 ## Dependencies:
 ### Required:
-* libxenbe log
+* xt-log
 * libconfigc++
 * wayland-ivi-extension
 
@@ -26,7 +26,7 @@ Supported variables:
 | --- | --- |
 | `CMAKE_BUILD_TYPE` | `Release`, `Debug`, `RelWithDebInfo`, `MinSizeRel`|
 | `CMAKE_INSTALL_PREFIX` | Default install path |
-| `XENBE_LOG_INCLUDE_PATH` | Path to libxenbe includes if they are located in non standard place |
+| `XT_LOG_INCLUDE_PATH` | Path to xt-log includes if they are located in non standard place |
 
 Example:
 ```

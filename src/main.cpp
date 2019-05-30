@@ -26,7 +26,7 @@
 #include <getopt.h>
 #include <unistd.h>
 
-#include <xen/be/Log.hpp>
+#include <xt/Log.hpp>
 
 #include "DisplayManager.hpp"
 
@@ -35,7 +35,7 @@ using std::endl;
 using std::ofstream;
 using std::string;
 
-using XenBackend::Log;
+using xt::Log;
 
 string gCfgFileName;
 string gLogFileName;

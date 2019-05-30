@@ -27,7 +27,7 @@
 
 #include <libconfig.h++>
 
-#include <xen/be/Log.hpp>
+#include <xt/Log.hpp>
 
 #include "IlmObject.hpp"
 
@@ -247,7 +247,7 @@ private:
 
 	const char* cDefaultCfgName = "dm.cfg";
 
-	XenBackend::Log mLog;
+	xt::Log mLog;
 	libconfig::Config mConfig;
 
 	int mDisplaysCount;

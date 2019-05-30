@@ -14,7 +14,7 @@
 
 #include <ilm/ilm_types.h>
 
-#include <xen/be/Log.hpp>
+#include <xt/Log.hpp>
 
 struct IlmRectangle
 {
@@ -67,7 +67,7 @@ protected:
 	t_ilm_uint mID;
 	IlmObjectPtr mParent;
 	int mOrder;
-	XenBackend::Log mLog;
+	xt::Log mLog;
 
 private:
 	struct Child
