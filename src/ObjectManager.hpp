@@ -10,7 +10,7 @@
 
 #include <unordered_map>
 
-#include <xen/be/Log.hpp>
+#include <xt/Log.hpp>
 
 #include "Config.hpp"
 #include "Display.hpp"
@@ -41,7 +41,7 @@ public:
 	void update();
 
 private:
-	XenBackend::Log mLog;
+	xt::Log mLog;
 
 	std::unordered_map<std::string, DisplayPtr> mDisplays;
 	std::unordered_map<std::string, LayerPtr> mLayers;

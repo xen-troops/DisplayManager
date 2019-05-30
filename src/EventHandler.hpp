@@ -11,7 +11,7 @@
 #include <ilm/ilm_control.h>
 #include <ilm/ilm_common.h>
 
-#include <xen/be/Log.hpp>
+#include <xt/Log.hpp>
 
 #include "Config.hpp"
 #include "ActionManager.hpp"
@@ -28,7 +28,7 @@ private:
 
 	static EventHandler* mInstance;
 
-	XenBackend::Log mLog;
+	xt::Log mLog;
 
 	static void sObjectNotification(ilmObjectType object, t_ilm_uint id,
 									t_ilm_bool created, void* data);

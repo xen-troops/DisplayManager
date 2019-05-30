@@ -8,7 +8,7 @@
 #ifndef SRC_DBUSSERVER_HPP_
 #define SRC_DBUSSERVER_HPP_
 
-#include <xen/be/Log.hpp>
+#include <xt/Log.hpp>
 
 #include "DBusControlAdapter.hpp"
 
@@ -26,7 +26,7 @@ private:
 	DBus::Connection::pointer mConnection;
 	DBusControlAdapter::pointer mAdapter;
 
-	XenBackend::Log mLog;
+	xt::Log mLog;
 
 	void userEvent(uint32_t event) override;
 };

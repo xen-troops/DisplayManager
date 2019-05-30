@@ -16,7 +16,7 @@
 #include <thread>
 #include <vector>
 
-#include <xen/be/Log.hpp>
+#include <xt/Log.hpp>
 
 #include "Config.hpp"
 #include "Exception.hpp"
@@ -260,7 +260,7 @@ public:
 private:
 	EventType mEvent;
 	std::vector<ActionPtr> mActions;
-	XenBackend::Log mLog;
+	xt::Log mLog;
 };
 
 
@@ -343,7 +343,7 @@ private:
 	ObjectManager& mObjects;
 	ConfigPtr mConfig;
 	bool mTerminate;
-	XenBackend::Log mLog;
+	xt::Log mLog;
 
 	std::vector<EventPtr> mEvents;
 

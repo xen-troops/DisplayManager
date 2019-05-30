@@ -29,7 +29,7 @@ private:
 
 	std::vector<t_ilm_layer> mLayersId;
 
-	XenBackend::Log mLog;
+	xt::Log mLog;
 
 	void showDisplaysInfo();
 	void createDisplays();
