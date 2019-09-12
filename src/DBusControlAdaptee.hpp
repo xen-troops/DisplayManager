@@ -6,7 +6,7 @@
 class DBusControlAdaptee
 {
 public:
-	virtual void userEvent(uint32_t event ) = 0;
+	virtual void userEvent(uint32_t event) = 0;
 };
 
 #endif /* DBUSCONTROLADAPTEE_HPP */
