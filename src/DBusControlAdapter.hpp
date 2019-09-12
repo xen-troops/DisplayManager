@@ -19,6 +19,6 @@ public:
 
 	static pointer create(
 		DBusControlAdaptee* adaptee,
-		std::string path = "/com/epam/DisplayManager" );
+		std::string path = "/com/epam/DisplayManager");
 };
 #endif /* DBUSCONTROLADAPTER_HPP */
