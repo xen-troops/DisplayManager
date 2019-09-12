@@ -10,35 +10,52 @@
 #include "ActionManager.hpp"
 
 
+using DBus::BUS_SYSTEM;
 using DBus::BUS_SESSION;
 using DBus::init;
 using DBus::Dispatcher;
 
 using std::exception;
 using std::runtime_error;
+using std::shared_ptr;
 
-DBusServer::DBusServer(ActionManager& actions) :
+DBusServer::DBusServer(ActionManager& actions, bool systemBus) :
 	mActions(actions),
 	mLog("DBusServer")
 {
 	LOG(mLog, DEBUG) << "Create";
 
-	init();
-	
-	mDispatcher = Dispatcher::create();
-	mConnection = mDispatcher->create_connection(BUS_SESSION);
-
-	if (mConnection->request_name("com.epam.DisplayManager",
-								  DBUS_NAME_FLAG_REPLACE_EXISTING)
-		!= DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) 
+	try
 	{
-		throw(runtime_error("Can't request DBus name"));
+		init();
+		
+		mDispatcher = Dispatcher::create();
+
+		if (systemBus)
+		{
+			mConnection = mDispatcher->create_connection(BUS_SYSTEM);
+		}
+		else
+		{
+			mConnection = mDispatcher->create_connection(BUS_SESSION);
+		}
+
+		if (mConnection->request_name("com.epam.DisplayManager",
+									DBUS_NAME_FLAG_REPLACE_EXISTING)
+			!= DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) 
+		{
+			throw(runtime_error("Can't request DBus name"));
+		}
+
+		DBusControlAdapter::create(this);
+
+		mAdapter = DBusControlAdapter::create(this);
+		mConnection->register_object(mAdapter);
 	}
-
-	DBusControlAdapter::create(this);
-
-	mAdapter = DBusControlAdapter::create(this);
-	mConnection->register_object(mAdapter);
+	catch(const std::shared_ptr<DBus::Error> e)
+	{
+		throw DmException(e->what());
+	}
 }
 
 DBusServer::~DBusServer()

@@ -17,7 +17,7 @@
 class DisplayManager
 {
 public:
-	DisplayManager(ConfigPtr config);
+	DisplayManager(ConfigPtr config, bool systemBus);
 	~DisplayManager();
 
 private:

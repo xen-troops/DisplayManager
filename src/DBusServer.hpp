@@ -17,7 +17,7 @@ class ActionManager;
 class DBusServer : public DBusControlAdaptee
 {
 public:
-	DBusServer(ActionManager& actions);
+	DBusServer(ActionManager& actions, bool systemBus);
 	~DBusServer();
 
 private:
