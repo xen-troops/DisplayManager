@@ -39,6 +39,7 @@ using xt::Log;
 
 string gCfgFileName;
 string gLogFileName;
+bool gSystemBus;
 
 /*******************************************************************************
  *
@@ -86,12 +87,16 @@ bool commandLineOptions(int argc, char *argv[])
 
 	int opt = -1;
 
-	while((opt = getopt(argc, argv, "c:v:l:fh?")) != -1)
+	while((opt = getopt(argc, argv, "sc:v:l:fh?")) != -1)
 	{
 		switch(opt)
 		{
-		case 'v':
+		case 's':
+			gSystemBus = true;
 
+			break;
+		
+		case 'v':
 			if (!Log::setLogMask(string(optarg)))
 			{
 				return false;
@@ -100,19 +105,16 @@ bool commandLineOptions(int argc, char *argv[])
 			break;
 
 		case 'c':
-
 			gCfgFileName = optarg;
 
 			break;
 
 		case 'l':
-
 			gLogFileName = optarg;
 
 			break;
 
 		case 'f':
-
 			Log::setShowFileAndLine(true);
 
 			break;
@@ -143,7 +145,7 @@ int main(int argc, char *argv[])
 
 			ConfigPtr config(new Config(gCfgFileName));
 
-			DisplayManager displayManager(config);
+			DisplayManager displayManager(config, gSystemBus);
 
 			waitSignals();
 
@@ -154,6 +156,7 @@ int main(int argc, char *argv[])
 			cout << "Usage: " << argv[0]
 				 << " [-c <file>] [-l <file>] [-v <level>]"
 				 << endl;
+			cout << "\t-s -- use system bus" << endl;
 			cout << "\t-c -- config file" << endl;
 			cout << "\t-l -- log file" << endl;
 			cout << "\t-v -- verbose level in format: "

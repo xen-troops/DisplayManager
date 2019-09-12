@@ -18,10 +18,10 @@ using std::vector;
  * DisplayManager
  ******************************************************************************/
 
-DisplayManager::DisplayManager(ConfigPtr config) :
+DisplayManager::DisplayManager(ConfigPtr config, bool systemBus) :
 	mConfig(config),
 	mActions(mObjects, config),
-	mServer(mActions),
+	mServer(mActions, systemBus),
 	mLog("DisplayManager")
 {
 	LOG(mLog, DEBUG) << "Create";
