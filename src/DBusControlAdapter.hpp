@@ -2,23 +2,22 @@
 #define DBUSCONTROLADAPTER_HPP
 
 #include <dbus-cxx.h>
-#include <memory>
 #include <stdint.h>
+
+#include <memory>
 #include <string>
 
 #include "DBusControlAdaptee.hpp"
 
-class DBusControlAdapter : public DBus::Object
-{
+class DBusControlAdapter : public DBus::Object {
 protected:
-	DBusControlAdapter(DBusControlAdaptee* adaptee,
-					   std::string path = "/com/epam/DisplayManager");
+    DBusControlAdapter(DBusControlAdaptee* adaptee,
+                       std::string path = "/com/epam/DisplayManager");
 
 public:
-	typedef std::shared_ptr<DBusControlAdapter> pointer;
+    typedef std::shared_ptr<DBusControlAdapter> pointer;
 
-	static pointer create(
-		DBusControlAdaptee* adaptee,
-		std::string path = "/com/epam/DisplayManager");
+    static pointer create(DBusControlAdaptee* adaptee,
+                          std::string path = "/com/epam/DisplayManager");
 };
 #endif /* DBUSCONTROLADAPTER_HPP */

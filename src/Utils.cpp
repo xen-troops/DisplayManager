@@ -13,17 +13,15 @@ using std::vector;
 
 string Utils::idsToStr(const vector<t_ilm_uint>& ids)
 {
-	string str;
+    string str;
 
-	for (auto id : ids)
-	{
-		str += to_string(id) + ", ";
-	}
+    for (auto id : ids) {
+        str += to_string(id) + ", ";
+    }
 
-	if (ids.size())
-	{
-		str.erase(str.size() - 2, 2);
-	}
+    if (ids.size()) {
+        str.erase(str.size() - 2, 2);
+    }
 
-	return str;
+    return str;
 }

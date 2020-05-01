@@ -9,7 +9,6 @@
 #define SRC_OBJECTMANAGER_HPP_
 
 #include <unordered_map>
-
 #include <xt/Log.hpp>
 
 #include "Config.hpp"
@@ -17,44 +16,42 @@
 #include "Layer.hpp"
 #include "Surface.hpp"
 
-class ObjectManager
-{
+class ObjectManager {
 public:
-	ObjectManager();
-	~ObjectManager();
+    ObjectManager();
+    ~ObjectManager();
 
-	DisplayPtr createDisplay(const DisplayConfig& config);
-	DisplayPtr getDisplayByName(const std::string& name) const;
-	DisplayPtr getDisplayByID(t_ilm_display id) const;
+    DisplayPtr createDisplay(const DisplayConfig& config);
+    DisplayPtr getDisplayByName(const std::string& name) const;
+    DisplayPtr getDisplayByID(t_ilm_display id) const;
 
-	LayerPtr createLayer(const LayerConfig& config);
-	LayerPtr getLayerByName(const std::string& name) const;
-	LayerPtr getLayerByID(t_ilm_layer id) const;
-	void deleteLayerByName(const std::string &name);
+    LayerPtr createLayer(const LayerConfig& config);
+    LayerPtr getLayerByName(const std::string& name) const;
+    LayerPtr getLayerByID(t_ilm_layer id) const;
+    void deleteLayerByName(const std::string& name);
 
-	SurfacePtr createSurface(const SurfaceConfig& config);
-	SurfacePtr getSurfaceByName(const std::string& name) const;
-	SurfacePtr getSurfaceByID(t_ilm_surface id) const;
-	void deleteSurfaceByName(const std::string& name);
+    SurfacePtr createSurface(const SurfaceConfig& config);
+    SurfacePtr getSurfaceByName(const std::string& name) const;
+    SurfacePtr getSurfaceByID(t_ilm_surface id) const;
+    void deleteSurfaceByName(const std::string& name);
 
-	void addToUpdateList(IlmObjectPtr object);
-	void update();
+    void addToUpdateList(IlmObjectPtr object);
+    void update();
 
 private:
-	xt::Log mLog;
+    xt::Log mLog;
 
-	std::unordered_map<std::string, DisplayPtr> mDisplays;
-	std::unordered_map<std::string, LayerPtr> mLayers;
-	std::unordered_map<std::string, SurfacePtr> mSurfaces;
+    std::unordered_map<std::string, DisplayPtr> mDisplays;
+    std::unordered_map<std::string, LayerPtr> mLayers;
+    std::unordered_map<std::string, SurfacePtr> mSurfaces;
 
-	std::list<IlmObjectPtr> mUpdateList;
+    std::list<IlmObjectPtr> mUpdateList;
 
-	template<class T>
-	T getObjectByName(const std::string& name,
-					  const std::unordered_map<std::string, T>& map) const;
-	template<class T, typename S>
-	T getObjectByID(S id,
-					const std::unordered_map<std::string, T>& map) const;
+    template <class T>
+    T getObjectByName(const std::string& name,
+                      const std::unordered_map<std::string, T>& map) const;
+    template <class T, typename S>
+    T getObjectByID(S id, const std::unordered_map<std::string, T>& map) const;
 };
 
 #endif /* SRC_OBJECTMANAGER_HPP_ */

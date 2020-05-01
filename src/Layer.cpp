@@ -20,10 +20,10 @@ using std::to_string;
  * Layer
  ******************************************************************************/
 
-Layer::Layer(ObjectManager& manager, const string& name, t_ilm_layer id) :
-	IlmObject(manager, "Layer", name, id)
+Layer::Layer(ObjectManager& manager, const string& name, t_ilm_layer id)
+    : IlmObject(manager, "Layer", name, id)
 {
-	getProperties();
+    getProperties();
 }
 
 Layer::~Layer()
@@ -36,88 +36,79 @@ Layer::~Layer()
 
 void Layer::setVisibility(t_ilm_bool visibility)
 {
-	LOG(mLog, DEBUG) << "Set visibility: " << visibility;
+    LOG(mLog, DEBUG) << "Set visibility: " << visibility;
 
-	if (mVisibility == visibility)
-	{
-		return;
-	}
+    if (mVisibility == visibility) {
+        return;
+    }
 
-	auto ret = ilm_layerSetVisibility(mID, visibility);
+    auto ret = ilm_layerSetVisibility(mID, visibility);
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't set layer visibility: " + to_string(mID), ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't set layer visibility: " + to_string(mID), ret);
+    }
 
-	mVisibility = visibility;
+    mVisibility = visibility;
 }
 
 void Layer::setOpacity(t_ilm_float opacity)
 {
-	LOG(mLog, DEBUG) << "Set opacity: " << opacity;
+    LOG(mLog, DEBUG) << "Set opacity: " << opacity;
 
-	if (mOpacity == opacity)
-	{
-		return;
-	}
+    if (mOpacity == opacity) {
+        return;
+    }
 
-	auto ret = ilm_layerSetOpacity(mID, opacity);
+    auto ret = ilm_layerSetOpacity(mID, opacity);
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't set layer opacity: " + to_string(mID), ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't set layer opacity: " + to_string(mID), ret);
+    }
 
-	mOpacity = opacity;
+    mOpacity = opacity;
 }
 
 void Layer::setSource(const IlmRectangle& rect)
 {
-	LOG(mLog, DEBUG) << "Set source"
-					 << ", x: " << rect.x << ", y: " << rect.y
-					 << ", width: " << rect.width
-					 << ", height: " << rect.height;
+    LOG(mLog, DEBUG) << "Set source"
+                     << ", x: " << rect.x << ", y: " << rect.y
+                     << ", width: " << rect.width
+                     << ", height: " << rect.height;
 
-	if (mSource == rect)
-	{
-		return;
-	}
+    if (mSource == rect) {
+        return;
+    }
 
-	auto ret = ilm_layerSetSourceRectangle(mID, rect.x, rect.y,
-										   rect.width, rect.height);
+    auto ret = ilm_layerSetSourceRectangle(mID, rect.x, rect.y, rect.width,
+                                           rect.height);
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't set layer source: " +
-						  to_string(mID), ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't set layer source: " + to_string(mID), ret);
+    }
 
-	mSource = rect;
+    mSource = rect;
 }
 
 void Layer::setDestination(const IlmRectangle& rect)
 {
-	LOG(mLog, DEBUG) << "Set destination"
-					 << ", x: " << rect.x << ", y: " << rect.y
-					 << ", width: " << rect.width
-					 << ", height: " << rect.height;
+    LOG(mLog, DEBUG) << "Set destination"
+                     << ", x: " << rect.x << ", y: " << rect.y
+                     << ", width: " << rect.width
+                     << ", height: " << rect.height;
 
-	if (mDestination == rect)
-	{
-		return;
-	}
+    if (mDestination == rect) {
+        return;
+    }
 
-	auto ret = ilm_layerSetDestinationRectangle(mID, rect.x, rect.y,
-												rect.width, rect.height);
+    auto ret = ilm_layerSetDestinationRectangle(mID, rect.x, rect.y, rect.width,
+                                                rect.height);
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't set layer destination: " +
-						  to_string(mID), ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't set layer destination: " + to_string(mID),
+                          ret);
+    }
 
-	mDestination = rect;
+    mDestination = rect;
 }
 
 /*******************************************************************************
@@ -125,144 +116,125 @@ void Layer::setDestination(const IlmRectangle& rect)
  ******************************************************************************/
 
 void Layer::layerNotification(ilmLayerProperties* properties,
-							  t_ilm_notification_mask mask)
+                              t_ilm_notification_mask mask)
 {
-	if (mask & ILM_NOTIFICATION_VISIBILITY)
-	{
-		onVisibility(properties->visibility);
-	}
+    if (mask & ILM_NOTIFICATION_VISIBILITY) {
+        onVisibility(properties->visibility);
+    }
 
-	if (mask & ILM_NOTIFICATION_OPACITY)
-	{
-		onOpacity(properties->opacity);
-	}
+    if (mask & ILM_NOTIFICATION_OPACITY) {
+        onOpacity(properties->opacity);
+    }
 
-	if (mask & ILM_NOTIFICATION_ORIENTATION)
-	{
-		LOG(mLog, DEBUG) << "Layer orientation changed, id: " << mID;
-	}
+    if (mask & ILM_NOTIFICATION_ORIENTATION) {
+        LOG(mLog, DEBUG) << "Layer orientation changed, id: " << mID;
+    }
 
-	if (mask & ILM_NOTIFICATION_SOURCE_RECT)
-	{
-		onSource( {properties->sourceX, properties->sourceY,
-				   properties->sourceWidth, properties->sourceHeight} );
-	}
+    if (mask & ILM_NOTIFICATION_SOURCE_RECT) {
+        onSource({properties->sourceX, properties->sourceY,
+                  properties->sourceWidth, properties->sourceHeight});
+    }
 
-	if (mask & ILM_NOTIFICATION_DEST_RECT)
-	{
-		onDestination( {properties->destX, properties->destY,
-						properties->destWidth, properties->destHeight} );
-	}
+    if (mask & ILM_NOTIFICATION_DEST_RECT) {
+        onDestination({properties->destX, properties->destY,
+                       properties->destWidth, properties->destHeight});
+    }
 
-	if (mask & ILM_NOTIFICATION_CONTENT_AVAILABLE)
-	{
-		LOG(mLog, DEBUG) << "Layer content available, id: " << mID;
-	}
+    if (mask & ILM_NOTIFICATION_CONTENT_AVAILABLE) {
+        LOG(mLog, DEBUG) << "Layer content available, id: " << mID;
+    }
 
-	if (mask & ILM_NOTIFICATION_CONTENT_REMOVED)
-	{
-		LOG(mLog, DEBUG) << "Layer content removed, id: " << mID;
-	}
+    if (mask & ILM_NOTIFICATION_CONTENT_REMOVED) {
+        LOG(mLog, DEBUG) << "Layer content removed, id: " << mID;
+    }
 
-	if (mask & ILM_NOTIFICATION_CONFIGURED)
-	{
-		LOG(mLog, DEBUG) << "Layer configured, id: " << mID;
-	}
+    if (mask & ILM_NOTIFICATION_CONFIGURED) {
+        LOG(mLog, DEBUG) << "Layer configured, id: " << mID;
+    }
 }
 
 void Layer::onVisibility(t_ilm_bool visibility)
 {
-	if (visibility != mVisibility)
-	{
-		LOG(mLog, WARNING) << "Visibility was changed outside";
+    if (visibility != mVisibility) {
+        LOG(mLog, WARNING) << "Visibility was changed outside";
 
-		auto ret = ilm_layerSetVisibility(mID, mVisibility);
+        auto ret = ilm_layerSetVisibility(mID, mVisibility);
 
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Can't set layer visibility: " +
-							  to_string(mID), ret);
-		}
+        if (ret != ILM_SUCCESS) {
+            throw DmException("Can't set layer visibility: " + to_string(mID),
+                              ret);
+        }
 
-		ilm_commitChanges();
-	}
+        ilm_commitChanges();
+    }
 }
 
 void Layer::onOpacity(t_ilm_float opacity)
 {
-	if (opacity != mOpacity)
-	{
-		LOG(mLog, WARNING) << "Opacity was changed outside";
+    if (opacity != mOpacity) {
+        LOG(mLog, WARNING) << "Opacity was changed outside";
 
-		auto ret = ilm_layerSetOpacity(mID, opacity);
+        auto ret = ilm_layerSetOpacity(mID, opacity);
 
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Can't set layer opacity: " + to_string(mID), ret);
-		}
+        if (ret != ILM_SUCCESS) {
+            throw DmException("Can't set layer opacity: " + to_string(mID),
+                              ret);
+        }
 
-		ilm_commitChanges();
-	}
+        ilm_commitChanges();
+    }
 }
 
 void Layer::onSource(const IlmRectangle& rect)
 {
-	if (mSource != rect)
-	{
-		LOG(mLog, WARNING) << "Source was changed outside";
+    if (mSource != rect) {
+        LOG(mLog, WARNING) << "Source was changed outside";
 
-		auto ret = ilm_layerSetSourceRectangle(mID, mSource.x, mSource.y,
-											   mSource.width, mSource.height);
+        auto ret = ilm_layerSetSourceRectangle(mID, mSource.x, mSource.y,
+                                               mSource.width, mSource.height);
 
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Can't set layer source: " +
-							  to_string(mID), ret);
-		}
+        if (ret != ILM_SUCCESS) {
+            throw DmException("Can't set layer source: " + to_string(mID), ret);
+        }
 
-		ilm_commitChanges();
-	}
-
+        ilm_commitChanges();
+    }
 }
 
 void Layer::onDestination(const IlmRectangle& rect)
 {
-	if (mDestination != rect)
-	{
-		LOG(mLog, WARNING) << "Destination was changed outside";
+    if (mDestination != rect) {
+        LOG(mLog, WARNING) << "Destination was changed outside";
 
-		auto ret = ilm_layerSetDestinationRectangle(mID, mDestination.x,
-													mDestination.y,
-													mDestination.width,
-													mDestination.height);
+        auto ret = ilm_layerSetDestinationRectangle(
+            mID, mDestination.x, mDestination.y, mDestination.width,
+            mDestination.height);
 
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Can't set layer destination: " +
-							  to_string(mID), ret);
-		}
+        if (ret != ILM_SUCCESS) {
+            throw DmException("Can't set layer destination: " + to_string(mID),
+                              ret);
+        }
 
-		ilm_commitChanges();
-	}
+        ilm_commitChanges();
+    }
 }
 
 void Layer::onAddChild(t_ilm_uint id)
 {
-	LOG(mLog, DEBUG) << "Add surface " << id;
+    LOG(mLog, DEBUG) << "Add surface " << id;
 
-	auto ret = ilm_layerAddSurface(mID, id);
+    auto ret = ilm_layerAddSurface(mID, id);
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't add surface to layer: " + to_string(mID), ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't add surface to layer: " + to_string(mID), ret);
+    }
 }
 
 void Layer::onRemoveChild(t_ilm_uint id)
 {
-	LOG(mLog, DEBUG) << "Remove surface " << id;
+    LOG(mLog, DEBUG) << "Remove surface " << id;
 
-	// No need to remove if it is removed in system?
+    // No need to remove if it is removed in system?
 #if 0
 	auto ret = ilm_layerRemoveSurface(mID, id);
 
@@ -276,39 +248,36 @@ void Layer::onRemoveChild(t_ilm_uint id)
 
 void Layer::onUpdate(const std::vector<t_ilm_uint>& ids)
 {
-	LOG(mLog, DEBUG) << "Set render order: " << Utils::idsToStr(ids);
+    LOG(mLog, DEBUG) << "Set render order: " << Utils::idsToStr(ids);
 
-	auto ret = ilm_layerSetRenderOrder(mID,
-									   const_cast<t_ilm_layer*>(ids.data()),
-									   ids.size());
+    auto ret = ilm_layerSetRenderOrder(
+        mID, const_cast<t_ilm_layer*>(ids.data()), ids.size());
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't set layer " + to_string(mID) + "render order",
-						  ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't set layer " + to_string(mID) + "render order",
+                          ret);
+    }
 }
 
 void Layer::getProperties()
 {
-	ilmLayerProperties property;
+    ilmLayerProperties property;
 
-	auto ret = ilm_getPropertiesOfLayer(mID, &property);
+    auto ret = ilm_getPropertiesOfLayer(mID, &property);
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't get layer properties: " + to_string(mID), ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't get layer properties: " + to_string(mID), ret);
+    }
 
-	mVisibility = property.visibility;
-	mOpacity = property.opacity;
+    mVisibility = property.visibility;
+    mOpacity = property.opacity;
 
-	mSource = { property.sourceX, property.sourceY,
-				property.sourceWidth, property.sourceHeight };
+    mSource = {property.sourceX, property.sourceY, property.sourceWidth,
+               property.sourceHeight};
 
-	mDestination = { property.destX, property.destY,
-					 property.destWidth, property.destHeight };
+    mDestination = {property.destX, property.destY, property.destWidth,
+                    property.destHeight};
 
-	LOG(mLog, DEBUG) << "Origin opacity: " << property.opacity
-					 << ", visibility: " << property.visibility;
+    LOG(mLog, DEBUG) << "Origin opacity: " << property.opacity
+                     << ", visibility: " << property.visibility;
 }

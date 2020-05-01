@@ -18,36 +18,34 @@ using std::vector;
  * DisplayManager
  ******************************************************************************/
 
-DisplayManager::DisplayManager(ConfigPtr config, bool systemBus) :
-	mConfig(config),
-	mActions(mObjects, config),
-	mServer(mActions, systemBus),
-	mLog("DisplayManager")
+DisplayManager::DisplayManager(ConfigPtr config, bool systemBus)
+    : mConfig(config),
+      mActions(mObjects, config),
+      mServer(mActions, systemBus),
+      mLog("DisplayManager")
 {
-	LOG(mLog, DEBUG) << "Create";
+    LOG(mLog, DEBUG) << "Create";
 
-	auto ret = ilm_init();
+    auto ret = ilm_init();
 
-	if (ret != ILM_SUCCESS)
-	{
-		throw DmException("Can't initialize ilm", ret);
-	}
+    if (ret != ILM_SUCCESS) {
+        throw DmException("Can't initialize ilm", ret);
+    }
 
-	showDisplaysInfo();
-	createDisplays();
-	createLayers();
+    showDisplaysInfo();
+    createDisplays();
+    createLayers();
 
-	mEvents.reset(new EventHandler(mObjects, mActions));
+    mEvents.reset(new EventHandler(mObjects, mActions));
 }
 
 DisplayManager::~DisplayManager()
 {
-	LOG(mLog, DEBUG) << "Delete";
+    LOG(mLog, DEBUG) << "Delete";
 
-	for(auto id : mLayersId)
-	{
-		ilm_layerRemove(id);
-	}
+    for (auto id : mLayersId) {
+        ilm_layerRemove(id);
+    }
 }
 
 /*******************************************************************************
@@ -56,108 +54,99 @@ DisplayManager::~DisplayManager()
 
 void DisplayManager::showDisplaysInfo()
 {
-	t_ilm_uint numOfIDs = 0;
-	t_ilm_uint* screenIDs = nullptr;
+    t_ilm_uint numOfIDs = 0;
+    t_ilm_uint* screenIDs = nullptr;
 
-	try
-	{
-		auto ret = ilm_getScreenIDs(&numOfIDs, &screenIDs);
+    try {
+        auto ret = ilm_getScreenIDs(&numOfIDs, &screenIDs);
 
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Can't get screen IDs", ret);
-		}
+        if (ret != ILM_SUCCESS) {
+            throw DmException("Can't get screen IDs", ret);
+        }
 
-		LOG(mLog, DEBUG) << "Displays count: " << numOfIDs;
+        LOG(mLog, DEBUG) << "Displays count: " << numOfIDs;
 
-		for(t_ilm_uint i = 0; i < numOfIDs; i++)
-		{
-			ilmScreenProperties props;
+        for (t_ilm_uint i = 0; i < numOfIDs; i++) {
+            ilmScreenProperties props;
 
-			ret = ilm_getPropertiesOfScreen(screenIDs[i], &props);
+            ret = ilm_getPropertiesOfScreen(screenIDs[i], &props);
 
-			if (ret != ILM_SUCCESS)
-			{
-				throw DmException("Can't get screen " +
-								  to_string(screenIDs[i]) + " properties",
-								  ret);
-			}
+            if (ret != ILM_SUCCESS) {
+                throw DmException("Can't get screen " +
+                                      to_string(screenIDs[i]) + " properties",
+                                  ret);
+            }
 
-			LOG(mLog, DEBUG) << "Display id: " << screenIDs[i]
-							 << ", connector: " << props.connectorName
-							 << ", width: " << props.screenWidth
-							 << ", height: " << props.screenHeight;
-		}
+            LOG(mLog, DEBUG) << "Display id: " << screenIDs[i]
+                             << ", connector: " << props.connectorName
+                             << ", width: " << props.screenWidth
+                             << ", height: " << props.screenHeight;
+        }
 
-		free(screenIDs);
-	}
-	catch(const exception &e)
-	{
-		free(screenIDs);
+        free(screenIDs);
+    }
+    catch (const exception& e) {
+        free(screenIDs);
 
-		throw;
-	}
+        throw;
+    }
 }
 
 void DisplayManager::createDisplays()
 {
-	for(int i = 0; i < mConfig->getDisplaysCount(); i++)
-	{
-		DisplayConfig config;
+    for (int i = 0; i < mConfig->getDisplaysCount(); i++) {
+        DisplayConfig config;
 
-		mConfig->getDisplayConfig(i, config);
+        mConfig->getDisplayConfig(i, config);
 
-		mObjects.createDisplay(config);
-	}
+        mObjects.createDisplay(config);
+    }
 }
 
 void DisplayManager::createLayers()
 {
-	for(int i = 0; i < mConfig->getLayersCount(); i++)
-	{
-		LayerConfig config;
+    for (int i = 0; i < mConfig->getLayersCount(); i++) {
+        LayerConfig config;
 
-		mConfig->getLayerConfig(i, config);
+        mConfig->getLayerConfig(i, config);
 
-		if (config.create)
-		{
-			createLayer(config.id, config.width, config.height);
-		}
-	}
+        if (config.create) {
+            createLayer(config.id, config.width, config.height);
+        }
+    }
 }
 
-void DisplayManager::createLayer(t_ilm_layer id, t_ilm_uint width, t_ilm_uint height)
+void DisplayManager::createLayer(t_ilm_layer id, t_ilm_uint width,
+                                 t_ilm_uint height)
 {
-	auto requestedID = id;
+    auto requestedID = id;
 
-	auto ret = ilm_layerCreateWithDimension(&id, width, height);
+    auto ret = ilm_layerCreateWithDimension(&id, width, height);
 
-	if (ret != ILM_SUCCESS)
-	{
-		LOG(mLog, WARNING) << "Create layer failed. Trying to remove.";
+    if (ret != ILM_SUCCESS) {
+        LOG(mLog, WARNING) << "Create layer failed. Trying to remove.";
 
-		ret = ilm_layerRemove(requestedID);
+        ret = ilm_layerRemove(requestedID);
 
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Failed to remove layer: " + to_string(requestedID), ret);
-		}
+        if (ret != ILM_SUCCESS) {
+            throw DmException(
+                "Failed to remove layer: " + to_string(requestedID), ret);
+        }
 
-		ret = ilm_layerCreateWithDimension(&id, width, height);
+        ret = ilm_layerCreateWithDimension(&id, width, height);
 
-		if (ret != ILM_SUCCESS)
-		{
-			throw DmException("Can't create layer: " + to_string(requestedID), ret);
-		}
-	}
+        if (ret != ILM_SUCCESS) {
+            throw DmException("Can't create layer: " + to_string(requestedID),
+                              ret);
+        }
+    }
 
-	if (requestedID != id)
-	{
-		ilm_layerRemove(id);
+    if (requestedID != id) {
+        ilm_layerRemove(id);
 
-		throw DmException("Can't set requested layer ID: " +
-						to_string(requestedID), ret);
-	}
+        throw DmException(
+            "Can't set requested layer ID: " + to_string(requestedID), ret);
+    }
 
-	mLayersId.push_back(id);
+    mLayersId.push_back(id);
 }
