@@ -8,17 +8,14 @@
 #ifndef SRC_UTILS_HPP_
 #define SRC_UTILS_HPP_
 
+#include <ilm/ilm_types.h>
+
 #include <string>
 #include <vector>
 
-#include <ilm/ilm_types.h>
-
-class Utils
-{
+class Utils {
 public:
-	static std::string idsToStr(const std::vector<t_ilm_uint>& ids);
+    static std::string idsToStr(const std::vector<t_ilm_uint>& ids);
 };
-
-
 
 #endif /* SRC_UTILS_HPP_ */

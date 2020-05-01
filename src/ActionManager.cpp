@@ -16,46 +16,45 @@ using std::dynamic_pointer_cast;
 using std::lock_guard;
 using std::mutex;
 using std::string;
+using std::thread;
 using std::to_string;
 using std::toupper;
 using std::transform;
-using std::vector;
-using std::thread;
 using std::unique_lock;
+using std::vector;
 
 /*******************************************************************************
  * ActionManager
  ******************************************************************************/
 
-ActionManager::ActionManager(ObjectManager& objects, ConfigPtr config) :
-	mObjects(objects),
-	mConfig(config),
-	mTerminate(false),
-	mLog("ActionManager")
+ActionManager::ActionManager(ObjectManager& objects, ConfigPtr config)
+    : mObjects(objects),
+      mConfig(config),
+      mTerminate(false),
+      mLog("ActionManager")
 {
-	LOG(mLog, DEBUG) << "Create";
+    LOG(mLog, DEBUG) << "Create";
 
-	init();
+    init();
 
-	mThread = thread(&ActionManager::run, this);
+    mThread = thread(&ActionManager::run, this);
 }
 
 ActionManager::~ActionManager()
 {
-	{
-		unique_lock<mutex> lock(mMutex);
+    {
+        unique_lock<mutex> lock(mMutex);
 
-		mTerminate = true;
+        mTerminate = true;
 
-		mCondVar.notify_all();
-	}
+        mCondVar.notify_all();
+    }
 
-	if (mThread.joinable())
-	{
-		mThread.join();
-	}
+    if (mThread.joinable()) {
+        mThread.join();
+    }
 
-	LOG(mLog, DEBUG) << "Delete";
+    LOG(mLog, DEBUG) << "Delete";
 }
 
 /*******************************************************************************
@@ -64,581 +63,534 @@ ActionManager::~ActionManager()
 
 void ActionManager::createLayer(t_ilm_layer id)
 {
-	asyncCall(bind(&ActionManager::asyncCreateLayer, this, id));
+    asyncCall(bind(&ActionManager::asyncCreateLayer, this, id));
 }
 
 void ActionManager::deleteLayer(t_ilm_layer id)
 {
-	asyncCall(bind(&ActionManager::asyncDeleteLayer, this, id));
+    asyncCall(bind(&ActionManager::asyncDeleteLayer, this, id));
 }
 
 void ActionManager::createSurface(t_ilm_surface id)
 {
-	asyncCall(bind(&ActionManager::asyncCreateSurface, this, id));
+    asyncCall(bind(&ActionManager::asyncCreateSurface, this, id));
 }
 
 void ActionManager::deleteSurface(t_ilm_surface id)
 {
-	asyncCall(bind(&ActionManager::asyncDeleteSurface, this, id));
+    asyncCall(bind(&ActionManager::asyncDeleteSurface, this, id));
 }
 
 void ActionManager::userEvent(uint32_t id)
 {
-	asyncCall(bind(&ActionManager::asyncUserEvent, this, id));
+    asyncCall(bind(&ActionManager::asyncUserEvent, this, id));
 }
 
 /*******************************************************************************
  * Private
  ******************************************************************************/
 
-const vector<ActionManager::EventsTable> ActionManager::sEventsTable =
-{
-	{ EventType::CREATE,  "CREATE" },
-	{ EventType::DESTROY, "DESTROY"},
-	{ EventType::USER,    "USER"   }
-};
+const vector<ActionManager::EventsTable> ActionManager::sEventsTable = {
+    {EventType::CREATE, "CREATE"},
+    {EventType::DESTROY, "DESTROY"},
+    {EventType::USER, "USER"}};
 
-const vector<ActionManager::ObjectsTable> ActionManager::sObjectsTable =
-{
-	{ ObjectType::LAYER,   "LAYER"   },
-	{ ObjectType::SURFACE, "SURFACE" }
-};
+const vector<ActionManager::ObjectsTable> ActionManager::sObjectsTable = {
+    {ObjectType::LAYER, "LAYER"}, {ObjectType::SURFACE, "SURFACE"}};
 
-const vector<ActionManager::ActionsTable> ActionManager::sActionsTable =
-{
-	{ ActionType::SOURCE,      "SOURCE"      },
-	{ ActionType::DESTINATION, "DESTINATION" },
-	{ ActionType::PARENT,      "PARENT"      },
-	{ ActionType::ORDER,       "ORDER"       },
-	{ ActionType::VISIBILITY,  "VISIBILITY"  },
-	{ ActionType::OPACITY,     "OPACITY"     }
-};
+const vector<ActionManager::ActionsTable> ActionManager::sActionsTable = {
+    {ActionType::SOURCE, "SOURCE"},
+    {ActionType::DESTINATION, "DESTINATION"},
+    {ActionType::PARENT, "PARENT"},
+    {ActionType::ORDER, "ORDER"},
+    {ActionType::VISIBILITY, "VISIBILITY"},
+    {ActionType::OPACITY, "OPACITY"}};
 
 void ActionManager::init()
 {
-	for(int i = 0; i < mConfig->getEventsCount(); i++)
-	{
-		string name;
+    for (int i = 0; i < mConfig->getEventsCount(); i++) {
+        string name;
 
-		mConfig->getEventName(i, name);
+        mConfig->getEventName(i, name);
 
-		EventPtr event;
+        EventPtr event;
 
-		auto eventType = getType<EventType, EventsTable>(sEventsTable, name);
+        auto eventType = getType<EventType, EventsTable>(sEventsTable, name);
 
-		switch(eventType)
-		{
-			case EventType::CREATE:
-			{
-				event = createEventCreate(i);
+        switch (eventType) {
+            case EventType::CREATE: {
+                event = createEventCreate(i);
 
-				break;
-			}
+                break;
+            }
 
-			case EventType::DESTROY:
-			{
-				event = createEventDestroy(i);
+            case EventType::DESTROY: {
+                event = createEventDestroy(i);
 
-				break;
-			}
+                break;
+            }
 
-			case EventType::USER:
-			{
-				event = createEventUser(i);
+            case EventType::USER: {
+                event = createEventUser(i);
 
-				break;
-			}
+                break;
+            }
 
-			default:
-			{
-				throw DmException("Not implemented event: " + name);
+            default: {
+                throw DmException("Not implemented event: " + name);
 
-				break;
-			}
-		}
+                break;
+            }
+        }
 
-		createEventActions(i, event);
+        createEventActions(i, event);
 
-		mEvents.push_back(event);
-	}
+        mEvents.push_back(event);
+    }
 }
 
 void ActionManager::asyncCall(AsyncCall f)
 {
-	unique_lock<mutex> lock(mMutex);
+    unique_lock<mutex> lock(mMutex);
 
-	mAsyncCalls.push_back(f);
+    mAsyncCalls.push_back(f);
 
-	mCondVar.notify_one();
+    mCondVar.notify_one();
 }
 
 void ActionManager::run()
 {
-	unique_lock<mutex> lock(mMutex);
+    unique_lock<mutex> lock(mMutex);
 
-	while(!mTerminate)
-	{
-		mCondVar.wait(lock, [this] { return mTerminate ||
-									 !mAsyncCalls.empty(); });
+    while (!mTerminate) {
+        mCondVar.wait(lock,
+                      [this] { return mTerminate || !mAsyncCalls.empty(); });
 
-		while(!mAsyncCalls.empty())
-		{
-			auto asyncCall = mAsyncCalls.front();
+        while (!mAsyncCalls.empty()) {
+            auto asyncCall = mAsyncCalls.front();
 
-			lock.unlock();
+            lock.unlock();
 
-			try
-			{
-				asyncCall();
-			}
-			catch(const std::exception& e)
-			{
-				LOG(mLog, ERROR) << e.what();
-			}
+            try {
+                asyncCall();
+            }
+            catch (const std::exception& e) {
+                LOG(mLog, ERROR) << e.what();
+            }
 
-			lock.lock();
+            lock.lock();
 
-			mAsyncCalls.pop_front();
-		}
-	}
+            mAsyncCalls.pop_front();
+        }
+    }
 }
 
 void ActionManager::asyncCreateLayer(t_ilm_layer id)
 {
-	for(int i = 0; i < mConfig->getLayersCount(); i++)
-	{
-		LayerConfig config;
+    for (int i = 0; i < mConfig->getLayersCount(); i++) {
+        LayerConfig config;
 
-		mConfig->getLayerConfig(i, config);
+        mConfig->getLayerConfig(i, config);
 
-		if (id == config.id)
-		{
-			LOG(mLog, DEBUG) << "Create layer, id: " << id;
+        if (id == config.id) {
+            LOG(mLog, DEBUG) << "Create layer, id: " << id;
 
-			auto layer = mObjects.createLayer(config);
+            auto layer = mObjects.createLayer(config);
 
-			onCreateLayer(layer->getName());
+            onCreateLayer(layer->getName());
 
-			mObjects.update();
+            mObjects.update();
 
-			return;
-		}
-	}
+            return;
+        }
+    }
 
-	LOG(mLog, WARNING) << "Unhandled layer " << id << " created";
+    LOG(mLog, WARNING) << "Unhandled layer " << id << " created";
 }
 
 void ActionManager::asyncDeleteLayer(t_ilm_layer id)
 {
-	auto layer = mObjects.getLayerByID(id);
+    auto layer = mObjects.getLayerByID(id);
 
-	if (layer)
-	{
-		LOG(mLog, DEBUG) << "Delete layer, id: " << id;
+    if (layer) {
+        LOG(mLog, DEBUG) << "Delete layer, id: " << id;
 
-		onDeleteLayer(layer->getName());
+        onDeleteLayer(layer->getName());
 
-		mObjects.deleteLayerByName(layer->getName());
+        mObjects.deleteLayerByName(layer->getName());
 
-		layer.reset();
+        layer.reset();
 
-		mObjects.update();
-	}
-	else
-	{
-		LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
-	}
+        mObjects.update();
+    }
+    else {
+        LOG(mLog, WARNING) << "Unhandled layer " << id << " deleted";
+    }
 }
 
 void ActionManager::asyncCreateSurface(t_ilm_surface id)
 {
-	for(int i = 0; i < mConfig->getSurfacesCount(); i++)
-	{
-		SurfaceConfig config;
+    for (int i = 0; i < mConfig->getSurfacesCount(); i++) {
+        SurfaceConfig config;
 
-		mConfig->getSurfaceConfig(i, config);
+        mConfig->getSurfaceConfig(i, config);
 
-		if (id == config.id)
-		{
-			LOG(mLog, DEBUG) << "Create surface, id: " << id;
+        if (id == config.id) {
+            LOG(mLog, DEBUG) << "Create surface, id: " << id;
 
-			auto surface = mObjects.createSurface(config);
+            auto surface = mObjects.createSurface(config);
 
-			onCreateSurface(surface->getName());
+            onCreateSurface(surface->getName());
 
-			mObjects.update();
+            mObjects.update();
 
-			return;
-		}
-	}
+            return;
+        }
+    }
 
-	LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
+    LOG(mLog, WARNING) << "Unhandled surface " << id << " created";
 }
 
 void ActionManager::asyncDeleteSurface(t_ilm_surface id)
 {
-	auto surface = mObjects.getSurfaceByID(id);
+    auto surface = mObjects.getSurfaceByID(id);
 
-	if (surface)
-	{
-		LOG(mLog, DEBUG) << "Delete surface, id: " << id;
+    if (surface) {
+        LOG(mLog, DEBUG) << "Delete surface, id: " << id;
 
-		onDeleteSurface(surface->getName());
+        onDeleteSurface(surface->getName());
 
-		mObjects.deleteSurfaceByName(surface->getName());
+        mObjects.deleteSurfaceByName(surface->getName());
 
-		surface.reset();
+        surface.reset();
 
-		mObjects.update();
-	}
-	else
-	{
-		LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
-	}
+        mObjects.update();
+    }
+    else {
+        LOG(mLog, WARNING) << "Unhandled surface " << id << " deleted";
+    }
 }
 
 void ActionManager::asyncUserEvent(uint32_t id)
 {
-	onUserEvent(id);
+    onUserEvent(id);
 
-	mObjects.update();
+    mObjects.update();
 }
 
 EventPtr ActionManager::createEventCreate(int eventIndex)
 {
-	EventCreateConfig createConfig;
+    EventCreateConfig createConfig;
 
-	mConfig->getEventCreateConfig(eventIndex, createConfig);
+    mConfig->getEventCreateConfig(eventIndex, createConfig);
 
-	LOG(mLog, DEBUG) << "event create, object: " << createConfig.object
-					 << ", name: " << createConfig.name;
+    LOG(mLog, DEBUG) << "event create, object: " << createConfig.object
+                     << ", name: " << createConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, createConfig.object);
+    auto objectType =
+        getType<ObjectType, ObjectsTable>(sObjectsTable, createConfig.object);
 
-	return EventPtr(new EventObject(EventType::CREATE, objectType,
-									createConfig.name));
+    return EventPtr(
+        new EventObject(EventType::CREATE, objectType, createConfig.name));
 }
 
 EventPtr ActionManager::createEventDestroy(int eventIndex)
 {
-	EventDestroyConfig destroyConfig;
+    EventDestroyConfig destroyConfig;
 
-	mConfig->getEventDestroyConfig(eventIndex, destroyConfig);
+    mConfig->getEventDestroyConfig(eventIndex, destroyConfig);
 
-	LOG(mLog, DEBUG) << "event destroy, object: " << destroyConfig.object
-					 << ", name: " << destroyConfig.name;
+    LOG(mLog, DEBUG) << "event destroy, object: " << destroyConfig.object
+                     << ", name: " << destroyConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, destroyConfig.object);
+    auto objectType =
+        getType<ObjectType, ObjectsTable>(sObjectsTable, destroyConfig.object);
 
-	return EventPtr(new EventObject(EventType::DESTROY, objectType,
-									destroyConfig.name));
+    return EventPtr(
+        new EventObject(EventType::DESTROY, objectType, destroyConfig.name));
 }
 
 EventPtr ActionManager::createEventUser(int eventIndex)
 {
-	EventUserConfig userConfig;
+    EventUserConfig userConfig;
 
-	mConfig->getEventUserConfig(eventIndex, userConfig);
+    mConfig->getEventUserConfig(eventIndex, userConfig);
 
-	LOG(mLog, DEBUG) << "event user, id: " << userConfig.id;
+    LOG(mLog, DEBUG) << "event user, id: " << userConfig.id;
 
-	return EventPtr(new EventUser(userConfig.id));
+    return EventPtr(new EventUser(userConfig.id));
 }
 
 void ActionManager::createEventActions(int eventIndex, EventPtr event)
 {
-	auto count = mConfig->getActionsCount(eventIndex);
+    auto count = mConfig->getActionsCount(eventIndex);
 
-	for(int i = 0; i < count; i++)
-	{
-		string name;
+    for (int i = 0; i < count; i++) {
+        string name;
 
-		mConfig->getActionName(eventIndex, i, name);
+        mConfig->getActionName(eventIndex, i, name);
 
-		ActionPtr action;
+        ActionPtr action;
 
-		auto actionType = getType<ActionType, ActionsTable>(sActionsTable,
-															name);
+        auto actionType =
+            getType<ActionType, ActionsTable>(sActionsTable, name);
 
-		switch(actionType)
-		{
-			case ActionType::SOURCE:
-			{
-				action = createActionSource(eventIndex, i);
+        switch (actionType) {
+            case ActionType::SOURCE: {
+                action = createActionSource(eventIndex, i);
 
-				break;
-			}
+                break;
+            }
 
-			case ActionType::DESTINATION:
-			{
-				action = createActionDestination(eventIndex, i);
+            case ActionType::DESTINATION: {
+                action = createActionDestination(eventIndex, i);
 
-				break;
-			}
+                break;
+            }
 
-			case ActionType::PARENT:
-			{
-				action = createActionParent(eventIndex, i);
+            case ActionType::PARENT: {
+                action = createActionParent(eventIndex, i);
 
-				break;
-			}
+                break;
+            }
 
-			case ActionType::ORDER:
-			{
-				action = createActionOrder(eventIndex, i);
+            case ActionType::ORDER: {
+                action = createActionOrder(eventIndex, i);
 
-				break;
-			}
+                break;
+            }
 
-			case ActionType::VISIBILITY:
-			{
-				action = createActionVisibility(eventIndex, i);
+            case ActionType::VISIBILITY: {
+                action = createActionVisibility(eventIndex, i);
 
-				break;
-			}
+                break;
+            }
 
-			case ActionType::OPACITY:
-			{
-				action = createActionOpacity(eventIndex, i);
+            case ActionType::OPACITY: {
+                action = createActionOpacity(eventIndex, i);
 
-				break;
-			}
+                break;
+            }
 
-			default:
-			{
-				throw DmException("Not implemented action: " + name);
+            default: {
+                throw DmException("Not implemented action: " + name);
 
-				break;
-			}
-		}
+                break;
+            }
+        }
 
-		event->addAction(action);
-	}
+        event->addAction(action);
+    }
 }
 
 ActionPtr ActionManager::createActionSource(int eventIndex, int actionIndex)
 {
-	ActionSourceConfig sourceConfig;
+    ActionSourceConfig sourceConfig;
 
-	mConfig->getActionSourceConfig(eventIndex, actionIndex, sourceConfig);
+    mConfig->getActionSourceConfig(eventIndex, actionIndex, sourceConfig);
 
-	LOG(mLog, DEBUG) << "action source, index:" << eventIndex
-					 << ", object: " << sourceConfig.object
-					 << ", name: " << sourceConfig.name;
+    LOG(mLog, DEBUG) << "action source, index:" << eventIndex
+                     << ", object: " << sourceConfig.object
+                     << ", name: " << sourceConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, sourceConfig.object);
+    auto objectType =
+        getType<ObjectType, ObjectsTable>(sObjectsTable, sourceConfig.object);
 
-	return ActionPtr(new ActionSource(mObjects, objectType, sourceConfig.name,
-									  sourceConfig.source));
+    return ActionPtr(new ActionSource(mObjects, objectType, sourceConfig.name,
+                                      sourceConfig.source));
 }
 
 ActionPtr ActionManager::createActionDestination(int eventIndex,
-												 int actionIndex)
+                                                 int actionIndex)
 {
-	ActionDestinationConfig destinationConfig;
+    ActionDestinationConfig destinationConfig;
 
-	mConfig->getActionDestinationConfig(eventIndex, actionIndex,
-										destinationConfig);
+    mConfig->getActionDestinationConfig(eventIndex, actionIndex,
+                                        destinationConfig);
 
-	LOG(mLog, DEBUG) << "action destination, index:" << eventIndex
-					 << ", object: " << destinationConfig.object
-					 << ", name: " << destinationConfig.name;
+    LOG(mLog, DEBUG) << "action destination, index:" << eventIndex
+                     << ", object: " << destinationConfig.object
+                     << ", name: " << destinationConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, destinationConfig.object);
+    auto objectType = getType<ObjectType, ObjectsTable>(
+        sObjectsTable, destinationConfig.object);
 
-	return ActionPtr(new ActionDestination(mObjects, objectType,
-										   destinationConfig.name,
-										   destinationConfig.destination));
+    return ActionPtr(new ActionDestination(mObjects, objectType,
+                                           destinationConfig.name,
+                                           destinationConfig.destination));
 }
 
 ActionPtr ActionManager::createActionParent(int eventIndex, int actionIndex)
 {
-	ActionParentConfig parentConfig;
+    ActionParentConfig parentConfig;
 
-	mConfig->getActionParentConfig(eventIndex, actionIndex, parentConfig);
+    mConfig->getActionParentConfig(eventIndex, actionIndex, parentConfig);
 
-	LOG(mLog, DEBUG) << "action parent, index:" << eventIndex
-					 << ", object: " << parentConfig.object
-					 << ", name: " << parentConfig.name;
+    LOG(mLog, DEBUG) << "action parent, index:" << eventIndex
+                     << ", object: " << parentConfig.object
+                     << ", name: " << parentConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, parentConfig.object);
+    auto objectType =
+        getType<ObjectType, ObjectsTable>(sObjectsTable, parentConfig.object);
 
-	return ActionPtr(new ActionParent(mObjects, objectType, parentConfig.name,
-									  parentConfig.parent));
+    return ActionPtr(new ActionParent(mObjects, objectType, parentConfig.name,
+                                      parentConfig.parent));
 }
 
 ActionPtr ActionManager::createActionOrder(int eventIndex, int actionIndex)
 {
-	ActionOrderConfig orderConfig;
+    ActionOrderConfig orderConfig;
 
-	mConfig->getActionOrderConfig(eventIndex, actionIndex, orderConfig);
+    mConfig->getActionOrderConfig(eventIndex, actionIndex, orderConfig);
 
-	LOG(mLog, DEBUG) << "action order, index:" << eventIndex
-					 << ", object: " << orderConfig.object
-					 << ", name: " << orderConfig.name;
+    LOG(mLog, DEBUG) << "action order, index:" << eventIndex
+                     << ", object: " << orderConfig.object
+                     << ", name: " << orderConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, orderConfig.object);
+    auto objectType =
+        getType<ObjectType, ObjectsTable>(sObjectsTable, orderConfig.object);
 
-	return ActionPtr(new ActionOrder(mObjects, objectType, orderConfig.name,
-									 orderConfig.order));
+    return ActionPtr(new ActionOrder(mObjects, objectType, orderConfig.name,
+                                     orderConfig.order));
 }
 
 ActionPtr ActionManager::createActionVisibility(int eventIndex, int actionIndex)
 {
-	ActionVisibilityConfig visibilityConfig;
+    ActionVisibilityConfig visibilityConfig;
 
-	mConfig->getActionVisibilityConfig(eventIndex, actionIndex,
-									   visibilityConfig);
+    mConfig->getActionVisibilityConfig(eventIndex, actionIndex,
+                                       visibilityConfig);
 
-	LOG(mLog, DEBUG) << "action visibility, index:" << eventIndex
-					 << ", object: " << visibilityConfig.object
-					 << ", name: " << visibilityConfig.name;
+    LOG(mLog, DEBUG) << "action visibility, index:" << eventIndex
+                     << ", object: " << visibilityConfig.object
+                     << ", name: " << visibilityConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, visibilityConfig.object);
+    auto objectType = getType<ObjectType, ObjectsTable>(
+        sObjectsTable, visibilityConfig.object);
 
-	return ActionPtr(new ActionVisibility(mObjects, objectType,
-										  visibilityConfig.name,
-										  visibilityConfig.visibility));
+    return ActionPtr(new ActionVisibility(mObjects, objectType,
+                                          visibilityConfig.name,
+                                          visibilityConfig.visibility));
 }
 
 ActionPtr ActionManager::createActionOpacity(int eventIndex, int actionIndex)
 {
-	ActionOpacityConfig opacityConfig;
+    ActionOpacityConfig opacityConfig;
 
-	mConfig->getActionOpacityConfig(eventIndex, actionIndex, opacityConfig);
+    mConfig->getActionOpacityConfig(eventIndex, actionIndex, opacityConfig);
 
-	LOG(mLog, DEBUG) << "action opacity, index:" << eventIndex
-					 << ", object: " << opacityConfig.object
-					 << ", name: " << opacityConfig.name;
+    LOG(mLog, DEBUG) << "action opacity, index:" << eventIndex
+                     << ", object: " << opacityConfig.object
+                     << ", name: " << opacityConfig.name;
 
-	auto objectType = getType<ObjectType, ObjectsTable>(
-			sObjectsTable, opacityConfig.object);
+    auto objectType =
+        getType<ObjectType, ObjectsTable>(sObjectsTable, opacityConfig.object);
 
-	return ActionPtr(new ActionOpacity(mObjects, objectType, opacityConfig.name,
-									   opacityConfig.opacity));
+    return ActionPtr(new ActionOpacity(mObjects, objectType, opacityConfig.name,
+                                       opacityConfig.opacity));
 }
 
 template <typename T, typename S>
 T ActionManager::getType(const vector<S>& table, const string& name)
 {
-	string upperName = name;
+    string upperName = name;
 
-	transform(upperName.begin(), upperName.end(), upperName.begin(),
-			  [] (unsigned char c) { return toupper(c); } );
+    transform(upperName.begin(), upperName.end(), upperName.begin(),
+              [](unsigned char c) { return toupper(c); });
 
-	for(auto elem : table)
-	{
-		if (upperName == elem.name)
-		{
-			return elem.type;
-		}
-	}
+    for (auto elem : table) {
+        if (upperName == elem.name) {
+            return elem.type;
+        }
+    }
 
-	throw DmException("Unknown type " + name);
+    throw DmException("Unknown type " + name);
 }
 
 EventPtr ActionManager::getObjectEvent(EventType eventType,
-									   ObjectType objectType,
-									   const string& name)
+                                       ObjectType objectType,
+                                       const string& name)
 {
-	for(auto event : mEvents)
-	{
-		if (event->getEventType() == eventType)
-		{
-			auto eventObject = dynamic_pointer_cast<EventObject>(event);
+    for (auto event : mEvents) {
+        if (event->getEventType() == eventType) {
+            auto eventObject = dynamic_pointer_cast<EventObject>(event);
 
-			if (eventObject->getObjectType() == objectType &&
-				eventObject->getName() == name)
-			{
-				return event;
-			}
-		}
-	}
+            if (eventObject->getObjectType() == objectType &&
+                eventObject->getName() == name) {
+                return event;
+            }
+        }
+    }
 
-	return EventPtr();
+    return EventPtr();
 }
 
 EventPtr ActionManager::getUserEvent(uint32_t id)
 {
-	for(auto event : mEvents)
-	{
-		if (event->getEventType() == EventType::USER)
-		{
-			auto eventObject = dynamic_pointer_cast<EventUser>(event);
+    for (auto event : mEvents) {
+        if (event->getEventType() == EventType::USER) {
+            auto eventObject = dynamic_pointer_cast<EventUser>(event);
 
-			if (eventObject->getID() == id)
-			{
-				return event;
-			}
-		}
-	}
+            if (eventObject->getID() == id) {
+                return event;
+            }
+        }
+    }
 
-	return EventPtr();
+    return EventPtr();
 }
 
 void ActionManager::onCreateLayer(const std::string& name)
 {
-	auto event = getObjectEvent(EventType::CREATE, ObjectType::LAYER, name);
+    auto event = getObjectEvent(EventType::CREATE, ObjectType::LAYER, name);
 
-	if (event)
-	{
-		LOG(mLog, DEBUG) << "onCreateLayer, name: " << name;
+    if (event) {
+        LOG(mLog, DEBUG) << "onCreateLayer, name: " << name;
 
-		event->doActions();
-	}
+        event->doActions();
+    }
 }
 
 void ActionManager::onDeleteLayer(const std::string& name)
 {
-	auto event = getObjectEvent(EventType::DESTROY, ObjectType::LAYER, name);
+    auto event = getObjectEvent(EventType::DESTROY, ObjectType::LAYER, name);
 
-	if (event)
-	{
-		LOG(mLog, DEBUG) << "onDeleteLayer, name: " << name;
+    if (event) {
+        LOG(mLog, DEBUG) << "onDeleteLayer, name: " << name;
 
-		event->doActions();
-	}
+        event->doActions();
+    }
 }
 
 void ActionManager::onCreateSurface(const std::string& name)
 {
-	auto event = getObjectEvent(EventType::CREATE, ObjectType::SURFACE, name);
+    auto event = getObjectEvent(EventType::CREATE, ObjectType::SURFACE, name);
 
-	if (event)
-	{
-		LOG(mLog, DEBUG) << "onCreateSurface, name: " << name;
+    if (event) {
+        LOG(mLog, DEBUG) << "onCreateSurface, name: " << name;
 
-		event->doActions();
-	}
+        event->doActions();
+    }
 }
 
 void ActionManager::onDeleteSurface(const std::string& name)
 {
-	auto event = getObjectEvent(EventType::DESTROY, ObjectType::SURFACE, name);
+    auto event = getObjectEvent(EventType::DESTROY, ObjectType::SURFACE, name);
 
-	if (event)
-	{
-		LOG(mLog, DEBUG) << "onDeleteSurface, name: " << name;
+    if (event) {
+        LOG(mLog, DEBUG) << "onDeleteSurface, name: " << name;
 
-		event->doActions();
-	}
+        event->doActions();
+    }
 }
 
 void ActionManager::onUserEvent(uint32_t id)
 {
-	auto event = getUserEvent(id);
+    auto event = getUserEvent(id);
 
-	if (event)
-	{
-		LOG(mLog, DEBUG) << "onUserEvent, id: " << id;
+    if (event) {
+        LOG(mLog, DEBUG) << "onUserEvent, id: " << id;
 
-		event->doActions();
-	}
+        event->doActions();
+    }
 }

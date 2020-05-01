@@ -5,11 +5,12 @@
  *      Author: al1
  */
 
+#include "IlmObject.hpp"
+
 #include <algorithm>
 #include <vector>
 
 #include "Exception.hpp"
-#include "IlmObject.hpp"
 #include "ObjectManager.hpp"
 
 using std::find;
@@ -24,27 +25,26 @@ using std::vector;
  ******************************************************************************/
 
 IlmObject::IlmObject(ObjectManager& manager, const string& type,
-					 const string& name, t_ilm_uint id) :
-	mManager(manager),
-	mName(name),
-	mID(id),
-	mOrder(0),
-	mLog(type + "[" + to_string(id) + "]")
+                     const string& name, t_ilm_uint id)
+    : mManager(manager),
+      mName(name),
+      mID(id),
+      mOrder(0),
+      mLog(type + "[" + to_string(id) + "]")
 {
-	LOG(mLog, DEBUG) << "Create";
+    LOG(mLog, DEBUG) << "Create";
 }
 
 IlmObject::~IlmObject()
 {
-	LOG(mLog, DEBUG) << "Delete";
+    LOG(mLog, DEBUG) << "Delete";
 
-	if (mParent)
-	{
-		mParent->removeChild(mID);
-		mManager.addToUpdateList(mParent);
-	}
+    if (mParent) {
+        mParent->removeChild(mID);
+        mManager.addToUpdateList(mParent);
+    }
 
-	mParent.reset();
+    mParent.reset();
 }
 
 /*******************************************************************************
@@ -53,59 +53,53 @@ IlmObject::~IlmObject()
 
 void IlmObject::setOrder(int order)
 {
-	LOG(mLog, DEBUG) << "Set order " << order;
+    LOG(mLog, DEBUG) << "Set order " << order;
 
-	if (mParent)
-	{
-		mParent->removeChildFromList(mID);
-		mParent->addChildToList(mID, order);
+    if (mParent) {
+        mParent->removeChildFromList(mID);
+        mParent->addChildToList(mID, order);
 
-		mManager.addToUpdateList(mParent);
-	}
+        mManager.addToUpdateList(mParent);
+    }
 
-	mOrder = order;
+    mOrder = order;
 }
 
 void IlmObject::setParent(IlmObjectPtr parent)
 {
-	if (parent)
-	{
-		LOG(mLog, DEBUG) << "Set parent " << parent->getName();
-	}
-	else
-	{
-		LOG(mLog, DEBUG) << "Remove parent";
-	}
+    if (parent) {
+        LOG(mLog, DEBUG) << "Set parent " << parent->getName();
+    }
+    else {
+        LOG(mLog, DEBUG) << "Remove parent";
+    }
 
-	if (mParent)
-	{
-		mParent->removeChild(mID);
+    if (mParent) {
+        mParent->removeChild(mID);
 
-		mManager.addToUpdateList(mParent);
-	}
+        mManager.addToUpdateList(mParent);
+    }
 
-	mParent = parent;
+    mParent = parent;
 
-	if (mParent)
-	{
-		mParent->addChild(mID, mOrder);
+    if (mParent) {
+        mParent->addChild(mID, mOrder);
 
-		mManager.addToUpdateList(mParent);
-	}
+        mManager.addToUpdateList(mParent);
+    }
 }
 
 void IlmObject::update()
 {
-	LOG(mLog, DEBUG) << "Update";
+    LOG(mLog, DEBUG) << "Update";
 
-	vector<t_ilm_uint> ids;
+    vector<t_ilm_uint> ids;
 
-	for(auto child : mChildren)
-	{
-		ids.push_back(child.id);
-	}
+    for (auto child : mChildren) {
+        ids.push_back(child.id);
+    }
 
-	onUpdate(ids);
+    onUpdate(ids);
 }
 
 /*******************************************************************************
@@ -114,41 +108,37 @@ void IlmObject::update()
 
 void IlmObject::addChild(t_ilm_uint id, int order)
 {
-	onAddChild(id);
+    onAddChild(id);
 
-	addChildToList(id, order);
+    addChildToList(id, order);
 }
 
 void IlmObject::addChildToList(t_ilm_uint id, int order)
 {
-	for(auto it = mChildren.begin(); it != mChildren.end(); it++)
-	{
-		if (order < it->order)
-		{
-			mChildren.insert(it, {id, order});
+    for (auto it = mChildren.begin(); it != mChildren.end(); it++) {
+        if (order < it->order) {
+            mChildren.insert(it, {id, order});
 
-			return;
-		}
-	}
+            return;
+        }
+    }
 
-	mChildren.push_back({id, order});
+    mChildren.push_back({id, order});
 }
 
 void IlmObject::removeChild(t_ilm_uint id)
 {
-	onRemoveChild(id);
+    onRemoveChild(id);
 
-	removeChildFromList(id);
+    removeChildFromList(id);
 }
 
 void IlmObject::removeChildFromList(t_ilm_uint id)
 {
-	auto it = find_if(mChildren.begin(), mChildren.end(),
-					  [id](const Child& child)
-					  { return child.id == id; });
+    auto it = find_if(mChildren.begin(), mChildren.end(),
+                      [id](const Child& child) { return child.id == id; });
 
-	if (it != mChildren.end())
-	{
-		mChildren.erase(it);
-	}
+    if (it != mChildren.end()) {
+        mChildren.erase(it);
+    }
 }
