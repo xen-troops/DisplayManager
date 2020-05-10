@@ -16,17 +16,17 @@ There are variables and options. Options can be set to ON and OFF.
 
 Supported options:
 
-| Option | Description |
-| --- | --- |
+| Option     | Description                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `WITH_DOC` | Creates target to build documentation. It required Doxygen to be installed. If configured, documentation can be create with `make doc` |
 
 Supported variables:
 
-| Variable | Description |
-| --- | --- |
-| `CMAKE_BUILD_TYPE` | `Release`, `Debug`, `RelWithDebInfo`, `MinSizeRel`|
-| `CMAKE_INSTALL_PREFIX` | Default install path |
-| `XT_LOG_INCLUDE_PATH` | Path to xt-log includes if they are located in non standard place |
+| Variable               | Description                                                       |
+| ---------------------- | ----------------------------------------------------------------- |
+| `CMAKE_BUILD_TYPE`     | `Release`, `Debug`, `RelWithDebInfo`, `MinSizeRel`                |
+| `CMAKE_INSTALL_PREFIX` | Default install path                                              |
+| `XT_LOG_INCLUDE_PATH`  | Path to xt-log includes if they are located in non standard place |
 
 Example:
 ```
@@ -328,4 +328,18 @@ Example:
 
 ```
 DisplayManager -c display.cfg -v *:Debug
+```
+
+## Send user commands with DBus:
+
+Getting introspect:
+
+```bash
+dbus-send --session --print-reply --dest=com.epam.DisplayManager /com/epam/DisplayManager org.freedesktop.DBus.Introspectable.Introspect
+```
+
+Sending user event `1`:
+
+```bash
+dbus-send --session --dest=com.epam.DisplayManager --type=method_call  /com/epam/DisplayManager com.epam.DisplayManager.Control.userEvent uint32:1
 ```
