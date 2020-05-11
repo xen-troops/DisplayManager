@@ -21,26 +21,40 @@
 #ifndef SRC_DBUSSERVER_HPP_
 #define SRC_DBUSSERVER_HPP_
 
+#include <gio/gio.h>
+#include <glib.h>
+
 #include <xt/Log.hpp>
 
-#include "DBusControlAdapter.hpp"
+#include "DBusControl.h"
 
 class ActionManager;
 
-class DBusServer : public DBusControlAdaptee {
+class DBusServer {
 public:
     DBusServer(ActionManager& actions, bool systemBus);
     ~DBusServer();
 
-private:
-    ActionManager& mActions;
-    DBus::Dispatcher::pointer mDispatcher;
-    DBus::Connection::pointer mConnection;
-    DBusControlAdapter::pointer mAdapter;
+    void run();
 
+private:
+    static constexpr const char* sBusName = "com.epam.DisplayManager";
+    static constexpr const char* sObjectPath = "/com/epam/DisplayManager";
+
+    ActionManager& mActions;
+    GMainLoop* mLoop;
+    guint mBusId;
     xt::Log mLog;
 
-    void userEvent(uint32_t event) override;
+    static void sOnBusAcquired(GDBusConnection* connection, const gchar* name,
+                               gpointer userData);
+    void onBusAcquired(GDBusConnection* connection, const gchar* name);
+
+    static bool sHandleUserEvent(Control* interface,
+                                 GDBusMethodInvocation* invocation,
+                                 guint userEvent, gpointer userData);
+    bool handleUserEvent(Control* interface, GDBusMethodInvocation* invocation,
+                         guint userEvent);
 };
 
 #endif /* SRC_DBUSSERVER_HPP_ */

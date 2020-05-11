@@ -32,6 +32,8 @@ public:
     DisplayManager(ConfigPtr config, bool systemBus);
     ~DisplayManager();
 
+    void run();
+
 private:
     ConfigPtr mConfig;
     ObjectManager mObjects;

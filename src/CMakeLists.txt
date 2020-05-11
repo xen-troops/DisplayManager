@@ -16,7 +16,13 @@ if(NOT ILM_COMMON_FOUND)
 	set(ILM_COMMON_LIBRARIES ilmCommon)
 endif()
 
-pkg_check_modules(DBUS_CXX REQUIRED dbus-cxx-1.0)
+pkg_check_modules(GLIB REQUIRED glib-2.0)
+pkg_check_modules(GIO REQUIRED gio-unix-2.0)
+
+find_program(GDBUS_CODEGEN NAMES gdbus-codegen)
+if (NOT GDBUS_CODEGEN)
+    message(SEND_ERROR "Can't find gdbus-codegen")
+endif()
 
 ################################################################################
 # CFLAGS
@@ -28,13 +34,24 @@ pkg_check_modules(DBUS_CXX REQUIRED dbus-cxx-1.0)
 
 include_directories(
 	.
+	${CMAKE_CURRENT_BINARY_DIR}
 	${CONFIG_INCLUDE_DIRS}
-	${DBUS_CXX_INCLUDE_DIRS}
+	${GLIB_INCLUDE_DIRS}
+	${GIO_INCLUDE_DIRS}
 	${ILM_CTRL_INCLUDE_DIRS}
 	${ILM_COMMON_INCLUDE_DIRS}
 )
 
-message(STATUS "DBUS_CXX_INCLUDE_DIRS              = ${DBUS_CXX_INCLUDE_DIRS}")
+message(STATUS "GIO_INCLUDE_DIRS              = ${GIO_INCLUDE_DIRS}")
+
+################################################################################
+# DBus stubs
+################################################################################
+
+add_custom_command(OUTPUT DBusControl.c
+    COMMAND ${GDBUS_CODEGEN} --interface-prefix com.epam.DisplayManager. --generate-c-code=DBusControl ${PROJECT_SOURCE_DIR}/src/com.epam.displaymanager.xml
+    DEPENDS ${PROJECT_SOURCE_DIR}/src/com.epam.displaymanager.xml
+)
 
 ################################################################################
 # Sources
@@ -44,7 +61,7 @@ set(SOURCES
 	main.cpp
 	ActionManager.cpp
 	Config.cpp
-	DBusControlAdapter.cpp
+	DBusControl.c
 	DBusServer.cpp
 	Display.cpp
 	DisplayManager.cpp
@@ -71,7 +88,8 @@ install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 target_link_libraries(${PROJECT_NAME}
 	pthread
 	${CONFIG_LIBRARIES}
-	${DBUS_CXX_LIBRARIES}
+	${GLIB_LIBRARIES}
+	${GIO_LIBRARIES}
 	${ILM_CTRL_LIBRARIES}
 	${ILM_COMMON_LIBRARIES}
 )

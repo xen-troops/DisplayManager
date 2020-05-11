@@ -335,11 +335,13 @@ DisplayManager -c display.cfg -v *:Debug
 Getting introspect:
 
 ```bash
-dbus-send --session --print-reply --dest=com.epam.DisplayManager /com/epam/DisplayManager org.freedesktop.DBus.Introspectable.Introspect
+dbus-send --system --print-reply --dest=com.epam.DisplayManager /com/epam/DisplayManager org.freedesktop.DBus.Introspectable.Introspect
 ```
 
 Sending user event `1`:
 
 ```bash
-dbus-send --session --dest=com.epam.DisplayManager --type=method_call  /com/epam/DisplayManager com.epam.DisplayManager.Control.userEvent uint32:1
+dbus-send --system --dest=com.epam.DisplayManager --type=method_call  /com/epam/DisplayManager com.epam.DisplayManager.Control.userEvent uint32:1
 ```
+
+If DisplayManager is launched in session DBus mode, use `--session` instead of `--system`.
