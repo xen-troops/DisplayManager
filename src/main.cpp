@@ -69,19 +69,6 @@ void registerSignals()
     sigaction(SIGSEGV, &act, nullptr);
 }
 
-void waitSignals()
-{
-    sigset_t set;
-    int signal;
-
-    sigemptyset(&set);
-    sigaddset(&set, SIGINT);
-    sigaddset(&set, SIGTERM);
-    sigprocmask(SIG_BLOCK, &set, nullptr);
-
-    sigwait(&set, &signal);
-}
-
 bool commandLineOptions(int argc, char* argv[])
 {
     int opt = -1;
@@ -140,7 +127,7 @@ int main(int argc, char* argv[])
 
             DisplayManager displayManager(config, gSystemBus);
 
-            waitSignals();
+            displayManager.run();
 
             logFile.close();
         }

@@ -20,63 +20,109 @@
 
 #include "DBusServer.hpp"
 
+#include <glib-unix.h>
+
 #include "ActionManager.hpp"
 
-using DBus::BUS_SESSION;
-using DBus::BUS_SYSTEM;
-using DBus::Dispatcher;
-using DBus::init;
+/*******************************************************************************
+ * Static
+ ******************************************************************************/
 
-using std::exception;
-using std::runtime_error;
-using std::shared_ptr;
+namespace {
+gboolean sTerminationHandler(gpointer data)
+{
+    LOG("main", INFO) << "Terminating...";
+
+    g_main_loop_quit(reinterpret_cast<GMainLoop*>(data));
+
+    return false;
+}
+}  // namespace
+
+/*******************************************************************************
+ * DBusServer
+ ******************************************************************************/
 
 DBusServer::DBusServer(ActionManager& actions, bool systemBus)
-    : mActions(actions), mLog("DBusServer")
+    : mActions(actions), mLoop(nullptr), mLog("DBusServer")
 {
-    LOG(mLog, DEBUG) << "Create";
+    LOG(mLog, DEBUG) << "Create " << (systemBus ? "system" : "session")
+                     << " bus";
 
-    try {
-        init();
+    mLoop = g_main_loop_new(NULL, FALSE);
 
-        mDispatcher = Dispatcher::create();
+    g_unix_signal_add(SIGINT, sTerminationHandler, mLoop);
+    g_unix_signal_add(SIGTERM, sTerminationHandler, mLoop);
 
-        if (systemBus) {
-            mConnection = mDispatcher->create_connection(BUS_SYSTEM);
-        }
-        else {
-            mConnection = mDispatcher->create_connection(BUS_SESSION);
-        }
-
-        if (mConnection->request_name("com.epam.DisplayManager",
-                                      DBUS_NAME_FLAG_REPLACE_EXISTING) !=
-            DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
-            throw(runtime_error("Can't request DBus name"));
-        }
-
-        DBusControlAdapter::create(this);
-
-        mAdapter = DBusControlAdapter::create(this);
-        mConnection->register_object(mAdapter);
-    }
-    catch (const std::shared_ptr<DBus::Error> e) {
-        throw DmException(e->what());
-    }
+    mBusId = g_bus_own_name(
+        (systemBus ? G_BUS_TYPE_SYSTEM : G_BUS_TYPE_SESSION), sBusName,
+        static_cast<GBusNameOwnerFlags>(
+            G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT |
+            G_BUS_NAME_OWNER_FLAGS_REPLACE),
+        DBusServer::sOnBusAcquired, nullptr, nullptr, this, nullptr);
 }
 
 DBusServer::~DBusServer()
 {
     LOG(mLog, DEBUG) << "Delete";
+
+    g_bus_unown_name(mBusId);
+    g_main_loop_unref(mLoop);
 }
 
-void DBusServer::userEvent(uint32_t event)
-{
-    try {
-        LOG(mLog, DEBUG) << "User event: " << event;
+/*******************************************************************************
+ * Public
+ ******************************************************************************/
 
-        mActions.userEvent(event);
+void DBusServer::run()
+{
+    g_main_loop_run(mLoop);
+}
+
+/*******************************************************************************
+ * Private
+ ******************************************************************************/
+
+void DBusServer::sOnBusAcquired(GDBusConnection* connection, const gchar* name,
+                                gpointer userData)
+{
+    static_cast<DBusServer*>(userData)->onBusAcquired(connection, name);
+}
+
+void DBusServer::onBusAcquired(GDBusConnection* connection, const gchar* name)
+{
+    LOG(mLog, DEBUG) << "Bus acquired, name: " << name;
+
+    auto interface = control_skeleton_new();
+
+    g_signal_connect(interface, "handle-user-event",
+                     G_CALLBACK(DBusServer::sHandleUserEvent), this);
+
+    GError* error = nullptr;
+
+    if (!g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(interface),
+                                          connection, sObjectPath, &error)) {
+        LOG(mLog, ERROR) << "Can't export interface: " << error->message;
+
+        g_main_loop_quit(mLoop);
     }
-    catch (const exception& e) {
-        LOG(mLog, ERROR) << e.what();
-    }
+}
+
+bool DBusServer::sHandleUserEvent(Control* interface,
+                                  GDBusMethodInvocation* invocation,
+                                  guint userEvent, gpointer userData)
+{
+    return static_cast<DBusServer*>(userData)->handleUserEvent(
+        interface, invocation, userEvent);
+}
+
+bool DBusServer::handleUserEvent(Control* interface,
+                                 GDBusMethodInvocation* invocation,
+                                 guint userEvent)
+{
+    LOG(mLog, DEBUG) << "User event received: " << userEvent;
+
+    mActions.userEvent(userEvent);
+
+    return false;
 }
