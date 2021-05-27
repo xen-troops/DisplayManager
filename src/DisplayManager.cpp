@@ -99,7 +99,7 @@ std::map<t_ilm_uint, ilmScreenProperties>&& DisplayManager::getIlmScreenInfo()
                                   ret);
             }
 
-            LOG(mLog, DEBUG) << "Display id: " << screenIDs[i]
+            LOG(mLog, WARNING) << "Display id: " << screenIDs[i]
                              << ", connector: " << props.connectorName
                              << ", width: " << props.screenWidth
                              << ", height: " << props.screenHeight;
