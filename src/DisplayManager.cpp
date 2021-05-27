@@ -73,11 +73,11 @@ void DisplayManager::run()
 /*******************************************************************************
  * Private
  ******************************************************************************/
-
-void DisplayManager::showDisplaysInfo()
+std::map<t_ilm_uint, ilmScreenProperties>&& DisplayManager::getIlmScreenInfo()
 {
     t_ilm_uint numOfIDs = 0;
     t_ilm_uint* screenIDs = nullptr;
+    std::map<t_ilm_uint, ilmScreenProperties> res;
 
     try {
         auto ret = ilm_getScreenIDs(&numOfIDs, &screenIDs);
@@ -103,6 +103,7 @@ void DisplayManager::showDisplaysInfo()
                              << ", connector: " << props.connectorName
                              << ", width: " << props.screenWidth
                              << ", height: " << props.screenHeight;
+            res[screenIDs[i]] = &props;
         }
 
         free(screenIDs);
@@ -112,15 +113,39 @@ void DisplayManager::showDisplaysInfo()
 
         throw;
     }
+    return res;
 }
 
-void DisplayManager::createDisplays()
+void DisplayManager::createDisplays(const std::map<t_ilm_uint, ilmScreenProperties*>& availableScreens)
 {
     for (int i = 0; i < mConfig->getDisplaysCount(); i++) {
         DisplayConfig config;
 
         mConfig->getDisplayConfig(i, config);
 
+        // the id of the display maybe not compatible
+        // find the id in the list of the 'real' displays
+
+        if(availableScreens.find(i) == availableScreens.end() ) ) {
+            throw DmException("The display " +
+                                 to_string(i) + "  is not available");
+        }
+        auto imlScreen = availableScreens[i];
+        if(imlScreen->connectorName != config.name) {
+            // screen id is not compatible
+            // find the corresponded screen
+            auto elem = std::find_if(availableScreens.begin(),
+                         availableScreens.end(),
+                         [&config](const std::pair<t_ilm_uint, ilmScreenProperties*>& v ){
+                             return config.name == v.second->connectorName;
+                         });
+            if(elem == availableScreens.end()){
+                // display not found, this is an error
+                throw DmException("The display " + config.name + " does not exist.");
+            }
+            // change the id of the display at real one
+            config.id = elem.first;
+        }
         mObjects.createDisplay(config);
     }
 }

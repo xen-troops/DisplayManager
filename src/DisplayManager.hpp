@@ -26,6 +26,7 @@
 #include "DBusServer.hpp"
 #include "EventHandler.hpp"
 #include "ObjectManager.hpp"
+#include <ilm/ilm_types.h>
 
 class DisplayManager {
 public:
@@ -45,8 +46,8 @@ private:
 
     xt::Log mLog;
 
-    void showDisplaysInfo();
-    void createDisplays();
+    std::map<t_ilm_uint, ilmScreenProperties*>&& getIlmScreenInfoInfo();
+    void createDisplays(const std::map<t_ilm_uint, ilmScreenProperties*>& availableScreens);
     void createLayers();
     void createLayer(t_ilm_layer id, t_ilm_uint width, t_ilm_uint height);
 };
