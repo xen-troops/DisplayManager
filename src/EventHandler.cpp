@@ -95,6 +95,7 @@ void EventHandler::objectNotification(ilmObjectType object, t_ilm_uint id,
                 }
 
                 mActions.createSurface(id);
+                mObjects.update();
             }
             else {
                 mActions.deleteSurface(id);
@@ -112,6 +113,7 @@ void EventHandler::objectNotification(ilmObjectType object, t_ilm_uint id,
                 }
 
                 mActions.createLayer(id);
+                mObjects.update();
             }
             else {
                 mActions.deleteLayer(id);

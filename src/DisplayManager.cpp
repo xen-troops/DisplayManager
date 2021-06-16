@@ -50,6 +50,7 @@ DisplayManager::DisplayManager(ConfigPtr config, bool systemBus)
     createLayers();
 
     mEvents.reset(new EventHandler(mObjects, mActions));
+    mObjects.update();
 }
 
 DisplayManager::~DisplayManager()
