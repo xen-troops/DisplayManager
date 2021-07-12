@@ -150,6 +150,10 @@ void EventHandler::surfaceNotification(t_ilm_surface id,
 
         if (surface) {
             surface->surfaceNotification(properties, mask);
+            LOG(mLog, ERROR) << "Surface ID= "<<id <<" is found.";
+        }
+        else {
+            LOG(mLog, ERROR) << "Surface ID= "<<id <<" is NOT found.";
         }
     }
     catch (const exception& e) {
